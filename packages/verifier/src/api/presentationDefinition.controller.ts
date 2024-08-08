@@ -1,6 +1,6 @@
 import { Controller, Get, Param } from '@nestjs/common';
 
-@Controller('presentation-definition')
+@Controller('presentation-definitions')
 export class PresentationDefinitionController {
   constructor() {}
 

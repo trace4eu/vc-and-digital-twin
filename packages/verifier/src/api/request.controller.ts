@@ -1,6 +1,6 @@
 import { Controller, Get, Param } from '@nestjs/common';
 
-@Controller('request')
+@Controller('requests')
 export class RequestController {
   constructor() {}
 

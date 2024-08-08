@@ -4,13 +4,13 @@ import { HealthController } from './api/health.controller';
 import { DirectPostController } from './api/directPost.controller';
 import { PresentationController } from './api/presentation.controller';
 import { PresentationDefinitionController } from './api/presentationDefinition.controller';
+import { PresentationModule } from './contexts/presentation/presentation.module';
 
 @Module({
-  imports: [ApiConfigModule],
+  imports: [ApiConfigModule, PresentationModule],
   controllers: [
     HealthController,
     DirectPostController,
-    PresentationController,
     PresentationDefinitionController,
   ],
   providers: [],
