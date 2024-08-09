@@ -1,11 +1,18 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, Res } from '@nestjs/common';
+import { Response } from 'express';
+import RequestService from '../contexts/presentation/services/request.service';
 
-@Controller('requests')
+@Controller('request.jwt')
 export class RequestController {
-  constructor() {}
+  constructor(private requestService: RequestService) {}
 
   @Get('/:sessionId')
-  async getRequest(@Param('sessionId') transactionId: string) {
-    return transactionId;
+  async getRequest(
+    @Param('sessionId') sessionId: string,
+    @Res() response: Response,
+  ) {
+    const signedRequest = await this.requestService.execute(sessionId);
+    response.setHeader('Content-Type', 'application/oauth-authz-req+jwt');
+    response.send(signedRequest);
   }
 }

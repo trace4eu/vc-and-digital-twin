@@ -10,26 +10,14 @@ export enum VerificationProcessStatus {
 export interface VerifierSessionPrimitives {
   sessionId: string;
   status: VerificationProcessStatus;
-  openid4vpData?: Openid4vpData;
-  openid4vpAuthorizeData?: Openid4vpAuthorizeData;
+  openid4vpData: Openid4vpData;
   code?: string;
 }
-
-export interface Openid4vpAuthorizeData {
-  nonce?: string;
-  clientId: string;
-  redirectUri: string;
-  state?: string;
-  tokenState?: string;
-  presentationDefinition?: PresentationDefinition;
-}
-
 export class VerifierSession {
   constructor(
     private sessionId: SessionId,
     private status: VerificationProcessStatus,
-    private openid4vpData?: Openid4vpData,
-    private openid4vpAuthorizeData?: Openid4vpAuthorizeData,
+    private openid4vpData: Openid4vpData,
     private code?: string,
   ) {}
 
@@ -51,7 +39,6 @@ export class VerifierSession {
       new SessionId(primitives.sessionId),
       primitives.status,
       primitives.openid4vpData,
-      primitives.openid4vpAuthorizeData,
       primitives.code,
     );
   }
@@ -61,7 +48,6 @@ export class VerifierSession {
       sessionId: this.sessionId.toString(),
       status: this.status,
       openid4vpData: this.openid4vpData,
-      openid4vpAuthorizeData: this.openid4vpAuthorizeData,
       code: this.code,
     };
   }
@@ -74,27 +60,15 @@ export class VerifierSession {
     return this.status;
   }
 
-  getPresentationDefinition(): PresentationDefinition | undefined {
-    if (this.openid4vpData?.presentationDefinition) {
-      return this.openid4vpData.presentationDefinition;
-    }
-    if (this.openid4vpAuthorizeData?.presentationDefinition) {
-      return this.openid4vpAuthorizeData.presentationDefinition;
-    }
-    return undefined;
+  getPresentationDefinition(): PresentationDefinition {
+    return this.openid4vpData.presentationDefinition;
   }
 
   getState(): string | undefined {
     if (this.openid4vpData?.state) {
       return this.openid4vpData.state;
     }
-    if (this.openid4vpAuthorizeData?.state) {
-      return this.openid4vpAuthorizeData.state;
-    }
     return undefined;
-  }
-  getRedirectUri(): string {
-    return this.openid4vpAuthorizeData?.redirectUri ?? 'openid://';
   }
 
   getCode(): string | undefined {

@@ -35,7 +35,7 @@ export class ExceptionTypeFactory {
     logger.error({
       method: `${ExceptionTypeFactory.name}.${this.name}`,
       message: 'Exception does not match any known type',
-      customError: exception as Error,
+      customError: exception.stack,
     });
     return new InternalServerErrorException();
   }

@@ -8,11 +8,7 @@ import { PresentationModule } from './contexts/presentation/presentation.module'
 
 @Module({
   imports: [ApiConfigModule, PresentationModule],
-  controllers: [
-    HealthController,
-    DirectPostController,
-    PresentationDefinitionController,
-  ],
+  controllers: [HealthController],
   providers: [],
 })
 export class AppModule {}
