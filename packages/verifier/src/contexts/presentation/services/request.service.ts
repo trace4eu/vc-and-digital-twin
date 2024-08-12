@@ -57,11 +57,16 @@ export default class RequestService {
   private async signAuthenticationTokenRequest(
     authenticationTokenRequest: AuthenticationTokenRequest,
   ) {
+    const jwtHeader = {
+      typ: 'oauth-authz-req+jwt',
+      alg: 'ES256',
+    };
     return await joseWrapper.signJwt(
-      getJWKfromHex(
+      await getJWKfromHex(
         this.authorizationServerPublicKey,
         this.authorizationServerPrivateKey,
       ),
+      jwtHeader,
       Buffer.from(JSON.stringify(authenticationTokenRequest.toPrimitives())),
       this.requestObjectExp,
     );

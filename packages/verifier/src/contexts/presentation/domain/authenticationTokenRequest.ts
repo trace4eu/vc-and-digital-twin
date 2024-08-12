@@ -1,3 +1,5 @@
+import { ClientMetadata } from './clientMetadata.interface';
+
 export default interface AuthenticationTokenRequestPrimitives {
   state: string;
   client_id: string;
@@ -13,6 +15,7 @@ export default interface AuthenticationTokenRequestPrimitives {
   exp?: number;
   presentation_definition?: object;
   presentation_definition_uri?: string;
+  client_metadata?: ClientMetadata;
 }
 
 export class AuthenticationTokenRequest {
@@ -21,6 +24,7 @@ export class AuthenticationTokenRequest {
   public exp?: number;
   public presentation_definition?: object;
   public presentation_definition_uri?: string;
+  public client_metadata?: ClientMetadata;
   private constructor(
     private state: string,
     private client_id: string,
@@ -65,6 +69,10 @@ export class AuthenticationTokenRequest {
       tokenRequest.request_uri =
         authenticationTokenRequestPrimitives.request_uri;
     }
+    if (authenticationTokenRequestPrimitives.client_metadata) {
+      tokenRequest.client_metadata =
+        authenticationTokenRequestPrimitives.client_metadata;
+    }
     return tokenRequest;
   }
 
@@ -87,27 +95,19 @@ export class AuthenticationTokenRequest {
       tokenRequestPrimitives.presentation_definition =
         this.presentation_definition;
     }
+    if (this.presentation_definition_uri) {
+      tokenRequestPrimitives.presentation_definition_uri =
+        this.presentation_definition_uri;
+    }
     if (this.request) {
       tokenRequestPrimitives.request = this.request;
     }
     if (this.request_uri) {
       tokenRequestPrimitives.request_uri = this.request_uri;
     }
+    if (this.client_metadata) {
+      tokenRequestPrimitives.client_metadata = this.client_metadata;
+    }
     return tokenRequestPrimitives;
-  }
-
-  toURLSearchParams(): URLSearchParams {
-    const { exp, presentation_definition, ...rest } = this.toPrimitives();
-    const urlParams = new URLSearchParams(rest);
-    if (exp) {
-      urlParams.append('exp', String(exp));
-    }
-    if (presentation_definition) {
-      urlParams.append(
-        'presentation_definition',
-        JSON.stringify(presentation_definition),
-      );
-    }
-    return urlParams;
   }
 }

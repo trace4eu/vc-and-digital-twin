@@ -1,7 +1,7 @@
-import { VerifierSessionPrimitives } from '../verifierSession';
+import { VerifierSessionPrimitives } from './verifierSession';
 import AuthenticationTokenRequestPrimitives, {
   AuthenticationTokenRequest,
-} from '../authenticationTokenRequest';
+} from './authenticationTokenRequest';
 
 export class TokenRequestPayloadCreator {
   constructor(private verifierSession: VerifierSessionPrimitives) {}
@@ -38,7 +38,10 @@ export class TokenRequestPayloadCreator {
     ) {
       tokenRequest.presentation_definition_uri = `${clientId}/presentation-definitions/${verifierSession.sessionId}`;
     }
-
+    if (verifierSession.openid4vpData.clientMetadata) {
+      tokenRequest.client_metadata =
+        verifierSession.openid4vpData.clientMetadata;
+    }
     return AuthenticationTokenRequest.create(tokenRequest);
   }
 }

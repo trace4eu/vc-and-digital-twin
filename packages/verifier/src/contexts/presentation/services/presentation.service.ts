@@ -9,6 +9,8 @@ import { SessionId } from '../domain/sessionId';
 import { VerifierSessionRepository } from '../infrastructure/verifierSession.repository';
 import { buildB64QrCode } from '../../shared/qrCodeWrapper';
 import { PresentationDefinition } from '../domain/presentationDefinition.interface';
+import { ClientMetadata } from '../domain/clientMetadata.interface';
+import { getPublicJWKFromPublicHex } from '../../shared/jwkConverter';
 
 export interface Openid4vpData {
   responseType: string;
@@ -18,11 +20,13 @@ export interface Openid4vpData {
   state: string;
   callbackUrl: string;
   nonce: string;
+  clientMetadata?: ClientMetadata;
 }
 @Injectable()
 export default class PresentationService {
   private readonly clientId: string;
   private readonly openid4vpRequestProtocol: string;
+  private readonly clientMetadata: ClientMetadata;
   constructor(
     private configService: ConfigService<ApiConfig, true>,
     private sessionRepository: VerifierSessionRepository,
@@ -31,6 +35,27 @@ export default class PresentationService {
     this.openid4vpRequestProtocol = this.configService.get<string>(
       'openid4vpRequestProtocol',
     );
+    this.clientMetadata = {
+      authorization_endpoint: 'openid:',
+      response_types_supported: ['vp_token', 'id_token'],
+      vp_formats_supported: {
+        jwt_vp: {
+          alg_values_supported: ['ES256'],
+        },
+        jwt_vc: {
+          alg_values_supported: ['ES256'],
+        },
+      },
+      scopes_supported: ['openid'],
+      subject_types_supported: ['public'],
+      id_token_signing_alg_values_supported: ['ES256'],
+      request_object_signing_alg_values_supported: ['ES256'],
+      subject_syntax_types_supported: [
+        'urn:ietf:params:oauth:jwk-thumbprint',
+        'did:key:jwk_jcs-pub',
+      ],
+      id_token_types_supported: ['subject_signed_id_token'],
+    };
   }
   async execute(
     initPresentationRequest: InitPresentationRequestDto,
@@ -38,10 +63,11 @@ export default class PresentationService {
     const sessionId = new SessionId(Uuid.generate().toString());
     const state = Uuid.generate().toString();
 
-    const openid4vpData: Openid4vpData = {
-      state: state,
-      ...initPresentationRequest,
-    };
+    const openid4vpData = await this.buildOpenId4vpData(
+      state,
+      initPresentationRequest,
+      this.clientMetadata,
+    );
 
     const verifierSession = VerifierSession.buildFromOpenid4vpRequest(
       sessionId,
@@ -85,5 +111,25 @@ export default class PresentationService {
       `${clientId}/request.jwt/${sessionId}`,
     );
     return url.toString();
+  }
+
+  async buildOpenId4vpData(
+    state: string,
+    presentationRequest: InitPresentationRequestDto,
+    clientMetadata: ClientMetadata,
+  ): Promise<Openid4vpData> {
+    const publicKeyJWK = await getPublicJWKFromPublicHex(
+      this.configService.get<string>('authorizationServerPublicKey'),
+    );
+    const clientMetadataWithJwks = {
+      ...clientMetadata,
+      jwks: { keys: [publicKeyJWK] },
+    };
+
+    return {
+      state: state,
+      ...presentationRequest,
+      clientMetadata: clientMetadataWithJwks,
+    };
   }
 }

@@ -1,41 +1,41 @@
 import base64url from 'base64url';
 import { ec as EC } from 'elliptic';
-import { Base64 } from 'js-base64';
 import { JWK } from 'jose';
+import joseWrapper from './joseWrapper';
 
-const getPublicJWKFromPublicHex = (publicKeyHex: string): JWK => {
-  const ec = new EC('secp256k1');
-  const key = ec.keyFromPublic(publicKeyHex.replace('0x', ''), 'hex');
-  const pubPoint = key.getPublic();
-  const pubJwk: JWK = {
-    kty: 'EC',
-    crv: 'secp256k1',
-    x: Base64.fromUint8Array(pubPoint.getX().toArrayLike(Buffer), true),
-    y: Base64.fromUint8Array(pubPoint.getY().toArrayLike(Buffer), true),
-  };
+const getPublicJWKFromPublicHex = async (
+  publicKeyHex: string,
+): Promise<JWK> => {
+  const cleanPublicKeyHex = publicKeyHex.replace('0x04', '');
 
-  return pubJwk;
-};
-
-const getJWKfromHex = (publicKeyHex: string, privateKeyHex: string): JWK => {
   const jwk = <JWK>{
     crv: 'P-256',
     kty: 'EC',
   };
 
-  const cleanPublicKeyHex = publicKeyHex.replace('0x04', '');
+  const X = cleanPublicKeyHex.substring(0, 64);
+  const bufX = Buffer.from(X, 'hex');
+  jwk.x = base64url(bufX);
+
+  const Y = cleanPublicKeyHex.substring(64, 128);
+  const bufY = Buffer.from(Y, 'hex');
+  jwk.y = base64url(bufY);
+
+  jwk.kid = await joseWrapper.calculateJwkThumbprint(jwk);
+
+  return jwk;
+};
+
+const getJWKfromHex = async (
+  publicKeyHex: string,
+  privateKeyHex: string,
+): Promise<JWK> => {
+  const jwk = await getPublicJWKFromPublicHex(publicKeyHex);
+
   const cleanPrivateKeyHex = privateKeyHex.replace('0x', '');
 
   const buf = Buffer.from(cleanPrivateKeyHex, 'hex');
   jwk.d = base64url(buf);
-
-  const X = cleanPublicKeyHex.substr(0, 64);
-  const bufX = Buffer.from(X, 'hex');
-  jwk.x = base64url(bufX);
-
-  const Y = cleanPublicKeyHex.substr(64, 64);
-  const bufY = Buffer.from(Y, 'hex');
-  jwk.y = base64url(bufY);
 
   return jwk as JWK;
 };

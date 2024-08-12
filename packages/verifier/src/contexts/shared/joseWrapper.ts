@@ -5,6 +5,7 @@ import {
   generateKeyPair,
   importJWK,
   JWK,
+  JWTHeaderParameters,
   JWTPayload,
   jwtVerify,
   SignJWT,
@@ -30,6 +31,7 @@ class JoseWrapper {
 
   signJwt = async (
     jwk: JWK,
+    header: JWTHeaderParameters,
     payload: Buffer,
     exp?: number,
   ): Promise<string> => {
@@ -38,8 +40,8 @@ class JoseWrapper {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const jws = new SignJWT(JSON.parse(payload.toString()))
       .setProtectedHeader({
-        alg: 'ES256',
-        typ: 'JWT',
+        ...header,
+        kid: jwk.kid,
       })
       .setExpirationTime(expiration)
       .sign(await importJWK(jwk, 'ES256'));
