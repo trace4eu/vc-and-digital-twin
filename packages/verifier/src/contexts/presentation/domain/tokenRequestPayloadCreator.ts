@@ -14,7 +14,7 @@ export class TokenRequestPayloadCreator {
     const tokenRequest: AuthenticationTokenRequestPrimitives = {
       state: verifierSession.openid4vpData.state,
       client_id: clientId,
-      redirect_uri: `${clientId}/direct-post`,
+      redirect_uri: `${clientId}/${verifierSession.sessionId}/direct-post`,
       response_type: verifierSession.openid4vpData.responseType,
       response_mode: verifierSession.openid4vpData.responseMode,
       scope: 'openid',

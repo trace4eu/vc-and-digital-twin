@@ -2,6 +2,7 @@ import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
 
 export interface ApiConfig {
+  corsOrigins: string | undefined;
   apiPort: number;
   apiBasePath: string | undefined;
   authorizationServerPublicKey: string | undefined;
@@ -16,6 +17,7 @@ export interface ApiConfig {
 
 export const loadConfig = (): ApiConfig => {
   return {
+    corsOrigins: process.env.CORS_ORIGINS,
     apiPort: parseInt(process.env.API_PORT || '3000', 10),
     apiBasePath: process.env.API_BASE_PATH,
     authorizationServerPublicKey: process.env.AUTHORIZATION_SERVER_PUBLIC_KEY,
@@ -41,6 +43,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
   ],
   load: [loadConfig],
   validationSchema: Joi.object({
+    CORS_ORIGINS: Joi.string().empty().required().default('*'),
     API_PORT: Joi.string().pattern(/^\d+$/).default('3000'),
     API_BASE_PATH: Joi.string(),
     AUTHORIZATION_SERVER_PUBLIC_KEY: Joi.string().empty().required(),

@@ -1,4 +1,10 @@
-import { IsIn, IsNotEmpty, IsObject, IsString } from 'class-validator';
+import {
+  IsIn,
+  IsNotEmpty,
+  IsObject,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { PresentationDefinition } from '../../contexts/presentation/domain/presentationDefinition.interface';
 
 export class InitPresentationRequestDto {
@@ -25,7 +31,7 @@ export class InitPresentationRequestDto {
   @IsIn(['by_value', 'by_reference'])
   presentationDefinitionMode: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  callbackUrl: string;
+  callbackUrl?: string;
 }

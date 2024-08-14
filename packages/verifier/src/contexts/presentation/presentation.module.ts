@@ -8,6 +8,9 @@ import { RequestController } from '../../api/request.controller';
 import RequestService from './services/request.service';
 import { PresentationDefinitionController } from '../../api/presentationDefinition.controller';
 import PresentationDefinitionService from './services/presentationDefinition.service';
+import { VerifierController } from '../../api/verifier.controller';
+import IdTokenService from './services/idToken.service';
+import VpTokenService from './services/vpToken.service';
 
 @Module({
   imports: [],
@@ -15,6 +18,7 @@ import PresentationDefinitionService from './services/presentationDefinition.ser
     PresentationController,
     RequestController,
     PresentationDefinitionController,
+    VerifierController,
   ],
   providers: [
     RedisService,
@@ -23,6 +27,9 @@ import PresentationDefinitionService from './services/presentationDefinition.ser
     VerifierSessionRepository,
     RequestService,
     PresentationDefinitionService,
+    IdTokenService,
+    VpTokenService,
+    PresentationService,
   ],
 })
 export class PresentationModule {}

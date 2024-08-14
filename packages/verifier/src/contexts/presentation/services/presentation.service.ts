@@ -18,8 +18,8 @@ export interface Openid4vpData {
   presentationDefinition: PresentationDefinition;
   presentationDefinitionMode: string;
   state: string;
-  callbackUrl: string;
   nonce: string;
+  callbackUrl?: string;
   clientMetadata?: ClientMetadata;
 }
 @Injectable()
@@ -29,7 +29,7 @@ export default class PresentationService {
   private readonly clientMetadata: ClientMetadata;
   constructor(
     private configService: ConfigService<ApiConfig, true>,
-    private sessionRepository: VerifierSessionRepository,
+    private verifierSessionRepository: VerifierSessionRepository,
   ) {
     this.clientId = this.configService.get<string>('verifierClientId');
     this.openid4vpRequestProtocol = this.configService.get<string>(
@@ -74,7 +74,7 @@ export default class PresentationService {
       openid4vpData,
     );
 
-    await this.sessionRepository.save(verifierSession);
+    await this.verifierSessionRepository.save(verifierSession);
     return this.buildOpenid4vpResponse(
       sessionId.toString(),
       this.openid4vpRequestProtocol,

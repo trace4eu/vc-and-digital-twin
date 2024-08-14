@@ -19,6 +19,9 @@ async function bootstrap() {
   const apiBasePath = configService.get<string>('apiBasePath');
   const port = configService.get<number>('apiPort');
 
+  app.enableCors({
+    origin: [configService.get<string>('corsOrigins')],
+  });
   app.setGlobalPrefix(apiBasePath);
 
   const config = new DocumentBuilder()

@@ -4,8 +4,8 @@ import { ApiConfig } from '../../../../config/configuration';
 import { VerifierSessionRepository } from '../infrastructure/verifierSession.repository';
 import { SessionId } from '../domain/sessionId';
 import { VerificationProcessStatus } from '../domain/verifierSession';
-import VerificationRequestIdNotExistsException from '../exceptions/verificationSessionNotExists.exception';
-import AlreadyVerifiedException from '../exceptions/alreadyVerified.exception';
+import VerifierSessionIdNotExistsException from '../exceptions/verifierSessionIdNotExists.exception';
+import VerifierSessionAlreadyVerifiedException from '../exceptions/verifierSessionAlreadyVerified.exception';
 import { TokenRequestPayloadCreator } from '../domain/tokenRequestPayloadCreator';
 import { AuthenticationTokenRequest } from '../domain/authenticationTokenRequest';
 import joseWrapper from '../../shared/joseWrapper';
@@ -21,7 +21,7 @@ export default class RequestService {
 
   constructor(
     private configService: ConfigService<ApiConfig, true>,
-    private sessionRepository: VerifierSessionRepository,
+    private verifierSessionRepository: VerifierSessionRepository,
   ) {
     this.clientId = this.configService.get<string>('verifierClientId');
     this.requestObjectExp = this.configService.get<number>(
@@ -36,13 +36,13 @@ export default class RequestService {
   }
 
   async execute(sessionId: string) {
-    const verifierSession = await this.sessionRepository.getByKey(
+    const verifierSession = await this.verifierSessionRepository.getByKey(
       new SessionId(sessionId),
     );
     if (!verifierSession)
-      throw new VerificationRequestIdNotExistsException(sessionId);
+      throw new VerifierSessionIdNotExistsException(sessionId);
     if (verifierSession.getStatus() !== VerificationProcessStatus.PENDING) {
-      throw new AlreadyVerifiedException(sessionId);
+      throw new VerifierSessionAlreadyVerifiedException(sessionId);
     }
     // payload creator
     const authenticationTokenRequest = TokenRequestPayloadCreator.create(

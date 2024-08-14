@@ -1,0 +1,55 @@
+{
+  "name": "@trace4eu/vp-validator",
+  "version": "0.0.16,
+  "description": "Verifiable Presentation validator library",
+  "main": "dist/vp-validator.js",
+  "scripts": {
+    "release": "standard-version",
+    "test": "jest --testPathPattern=/unit",
+    "build": "npm run clean && tsc -p tsconfig.build.json",
+    "clean": "rm -rf ./dist ./coverage",
+    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/trace4eu/vc-and-digital-twin/packages/vp-validator.git"
+  },
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/trace4eu/vc-and-digital-twin/issues"
+  },
+  "homepage": "https://github.com/trace4eu/vc-and-digital-twin#readme",
+  "dependencies": {
+    "@cef-ebsi/key-did-resolver": "^1.1.0",
+    "@cef-ebsi/verifiable-credential": "^4.4.2",
+    "@cef-ebsi/verifiable-presentation": "^5.4.1",
+    "@transmute/did-key.js": "^0.2.1-unstable.42",
+    "ajv": "^8.12.0",
+    "axios": "^1.6.8",
+    "bitset": "^5.1.1",
+    "did-resolver": "^4.1.0",
+    "jose": "^5.2.3",
+    "jsonpath": "^1.1.1",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.4.0",
+    "@types/node": "^18.11.18",
+    "@typescript-eslint/eslint-plugin": "^5.50.0",
+    "@typescript-eslint/parser": "^5.50.0",
+    "eslint": "^8.33.0",
+    "eslint-config-prettier": "^8.6.0",
+    "eslint-plugin-prettier": "5.1.2",
+    "jest": "^29.4.1",
+    "jest-junit": "^15.0.0",
+    "jest-mock-extended": "^3.0.1",
+    "prettier": "^3.2.5",
+    "source-map-support": "^0.5.20",
+    "standard-version": "^9.5.0",
+    "supertest": "^6.3.3",
+    "ts-jest": "^29.0.5",
+    "ts-loader": "^9.4.2",
+    "ts-node": "^10.0.0",
+    "typescript": "^4.9.5"
+  }
+}
