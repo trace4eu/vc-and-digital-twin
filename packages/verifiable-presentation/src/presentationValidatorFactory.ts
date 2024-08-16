@@ -3,6 +3,7 @@ import { EbsiWrapper } from './middleware/ebsiWrapper';
 import { EbsiPresentationValidator } from './validators/ebsiPresentationValidator';
 import { isEbsiDid, isKeyDid } from './utils/utils';
 import { ValidationResult } from './types/validationResult';
+import UnsupportedStatusListCredentialTypeException from './exceptions/unsupportedVeriafiablePresentationFormat';
 
 export interface PresentationValidator {
   validate(presentation: string, audience: string): Promise<ValidationResult>;
@@ -22,8 +23,7 @@ export class PresentationValidatorFactory {
       const ebsiWrapper = new EbsiWrapper();
       return new EbsiPresentationValidator(vpTokenData, ebsiWrapper, opts);
     }
-
-    // ToDO perform validation about different types of credential
+    throw new UnsupportedStatusListCredentialTypeException();
   }
 
   private isEbsiPresentation(

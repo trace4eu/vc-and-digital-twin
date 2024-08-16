@@ -1,5 +1,5 @@
 {
-  "name": "@trace4eu/vp-validator",
+  "name": "@trace4eu/verifiable-presentation",
   "version": "0.0.1",
   "description": "Verifiable Presentation validator library",
   "main": "dist/vp-validator.js",

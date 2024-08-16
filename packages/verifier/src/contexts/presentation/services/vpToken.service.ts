@@ -63,7 +63,7 @@ export default class VpTokenService {
     // validate Presentation
     // if not valid return { valid: false, message }
     // if valid => extract data (vpTokenIssuer, verifiableCredentials, verifiableCredentialsDecoded, descriptorMapIds, presentationSubmission)
-    // use library vp-validator fr that purpose
+    // use library verifiable-presentation fr that purpose
     // update verifier session
     // ToDO: status list credential (revocation)
 

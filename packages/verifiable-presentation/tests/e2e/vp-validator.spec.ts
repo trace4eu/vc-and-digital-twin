@@ -1,6 +1,6 @@
 import { validateJwtVP } from '../../src/vp-validator';
 
-describe('vp-validator should', () => {
+describe('verifiable-presentation should', () => {
   const presentationDefinition = {
     id: 'holder-wallet-test-presentation',
     input_descriptors: [
