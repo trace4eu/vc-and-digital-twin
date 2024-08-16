@@ -1,6 +1,6 @@
 {
   "name": "@trace4eu/vp-validator",
-  "version": "0.0.16,
+  "version": "0.0.1",
   "description": "Verifiable Presentation validator library",
   "main": "dist/vp-validator.js",
   "scripts": {
@@ -20,20 +20,16 @@
   },
   "homepage": "https://github.com/trace4eu/vc-and-digital-twin#readme",
   "dependencies": {
-    "@cef-ebsi/key-did-resolver": "^1.1.0",
-    "@cef-ebsi/verifiable-credential": "^4.4.2",
     "@cef-ebsi/verifiable-presentation": "^5.4.1",
-    "@transmute/did-key.js": "^0.2.1-unstable.42",
     "ajv": "^8.12.0",
     "axios": "^1.6.8",
-    "bitset": "^5.1.1",
-    "did-resolver": "^4.1.0",
     "jose": "^5.2.3",
     "jsonpath": "^1.1.1",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@types/jest": "^29.4.0",
+    "@types/jsonpath": "^0.2.4",
     "@types/node": "^18.11.18",
     "@typescript-eslint/eslint-plugin": "^5.50.0",
     "@typescript-eslint/parser": "^5.50.0",
