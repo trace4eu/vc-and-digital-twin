@@ -1,50 +1,15 @@
 import jsonpath from 'jsonpath';
-import { JWTPayload } from 'jose';
 import joseWrapper from '../middleware/joseWrapper';
-
-export interface VerifiablePresentation extends JWTPayload {
-  vp?: {
-    id: string;
-    '@context': string[];
-    type: string[];
-    holder: string;
-    verifiableCredential: string[] | JsonCredential[];
-  };
-}
-
-interface ExtractorResult {
-  valid: boolean;
-  message?: string;
-  verifiableCredential?: CredentialFormatTuple;
-  verifiableCredentialDecoded?: any;
-}
-export interface PresentationResult {
-  valid: boolean;
-  message?: string;
-}
-
-export enum CredentialFormat {
-  JWT = 'jwt',
-  JSON = 'json',
-}
-
-export interface CredentialFormatTuple {
-  format: CredentialFormat;
-  verifiableCredential: string | object;
-}
-
-export interface VPTokenData {
-  vpTokenIssuer?: string;
-  verifiableCredentials?: CredentialFormatTuple[];
-  verifiableCredentialsDecoded?: any[];
-  descriptorMapIds?: string[];
-  decodedVerifiablePresentation?: VerifiablePresentation;
-}
-
-export interface ExtractionResult {
-  result: PresentationResult;
-  vpTokenData?: VPTokenData;
-}
+import {
+  CredentialFormat,
+  CredentialFormatTuple,
+  ExtractionResult,
+  ExtractorResult,
+  JsonPresentation,
+  PresentationSubmission,
+  SubmissionEntry,
+  VerifiablePresentation,
+} from '../types';
 
 export class VpTokenCredentialsExtractor {
   private vpTokenIssuer: string;

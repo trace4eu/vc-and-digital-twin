@@ -1,8 +1,8 @@
-import { verifyPresentationJwt } from '@cef-ebsi/verifiable-presentation';
 import {
+  verifyPresentationJwt,
   EbsiVerifiablePresentation,
   VerifyPresentationJwtOptions,
-} from '@cef-ebsi/verifiable-presentation/dist/types';
+} from '@cef-ebsi/verifiable-presentation';
 
 export class EbsiWrapper {
   public async verifyPresentationJwt(

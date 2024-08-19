@@ -1,6 +1,6 @@
 import jsonpath from 'jsonpath';
-import { PresentationResult } from '../utils/vpTokenCredentialsExtractor';
 import JsonSchemaWrapper from '../middleware/jsonSchemaWrapper';
+import { PresentationDefinition, PresentationResult } from '../types';
 
 export class PresentationSubmissionValidator {
   private result: PresentationResult;

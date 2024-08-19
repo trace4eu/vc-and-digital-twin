@@ -1,9 +1,13 @@
-import { VPTokenData } from './utils/vpTokenCredentialsExtractor';
 import { EbsiWrapper } from './middleware/ebsiWrapper';
 import { EbsiPresentationValidator } from './validators/ebsiPresentationValidator';
 import { isEbsiDid, isKeyDid } from './utils/utils';
-import { ValidationResult } from './types/validationResult';
 import UnsupportedStatusListCredentialTypeException from './exceptions/unsupportedVeriafiablePresentationFormat';
+import {
+  DecodedVerifiableCredential,
+  PresentationValidationOptions,
+  ValidationResult,
+  VPTokenData,
+} from './types';
 
 export interface PresentationValidator {
   validate(presentation: string, audience: string): Promise<ValidationResult>;

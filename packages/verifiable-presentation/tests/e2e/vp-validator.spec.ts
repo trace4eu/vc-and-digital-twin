@@ -1,4 +1,4 @@
-import { validateJwtVP } from '../../src/vp-validator';
+import { validateJwtVP } from '../../src';
 
 describe('verifiable-presentation should', () => {
   const presentationDefinition = {

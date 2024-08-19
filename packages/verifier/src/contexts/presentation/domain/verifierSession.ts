@@ -1,6 +1,6 @@
 import { SessionId } from './sessionId';
 import { Openid4vpData } from '../services/presentation.service';
-import { PresentationDefinition } from './presentationDefinition.interface';
+import { PresentationDefinition } from '@trace4eu/verifiable-presentation';
 
 export enum VerificationProcessStatus {
   PENDING = 'pending',

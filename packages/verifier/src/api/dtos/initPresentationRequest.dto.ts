@@ -5,7 +5,7 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { PresentationDefinition } from '../../contexts/presentation/domain/presentationDefinition.interface';
+import { PresentationDefinition } from '@trace4eu/verifiable-presentation';
 
 export class InitPresentationRequestDto {
   @IsNotEmpty()

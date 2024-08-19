@@ -1,4 +1,8 @@
 import { PresentationSubmissionFormatValidator } from '../../src/validators/presentationSubmissionFormatValidator';
+import {
+  PresentationDefinition,
+  PresentationSubmission,
+} from '../../src/types';
 
 describe('PresentationSubmissionFormatValidator', () => {
   it('should validate a valid presentation_submission with a presentation_definition', () => {

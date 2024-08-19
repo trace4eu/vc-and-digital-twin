@@ -3,13 +3,14 @@ import { decodeJwt } from 'jose';
 import {
   EbsiVerifiablePresentation,
   VerifyPresentationJwtOptions,
-} from '@cef-ebsi/verifiable-presentation/dist/types';
+} from '@cef-ebsi/verifiable-presentation';
 import { ValidationError } from '@cef-ebsi/verifiable-credential';
 import ResolvedValue = jest.ResolvedValue;
 import RejectedValue = jest.RejectedValue;
 import { EbsiPresentationValidator } from '../../src/validators/ebsiPresentationValidator';
 import { EbsiWrapper } from '../../src/middleware/ebsiWrapper';
-import { ValidationResult } from '../../src/types/validationResult';
+import { ValidationResult } from '../../src/types';
+
 describe('EbsiPresentationValidator should', () => {
   const ebsiWrapperMock = mock<EbsiWrapper>();
   const ebsiAuthority = 'api-conformance.ebsi.eu';

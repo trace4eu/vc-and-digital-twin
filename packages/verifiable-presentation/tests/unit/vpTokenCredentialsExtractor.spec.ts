@@ -1,8 +1,6 @@
 import joseWrapper from '../../src/middleware/joseWrapper';
-import {
-  CredentialFormat,
-  VpTokenCredentialsExtractor,
-} from '../../src/utils/vpTokenCredentialsExtractor';
+import { VpTokenCredentialsExtractor } from '../../src/utils/vpTokenCredentialsExtractor';
+import { CredentialFormat } from '../../src';
 
 describe('vpTokenCredentialExtractor should', () => {
   it('return the list of credentials from vp_token, input: vp_token as object[]', () => {

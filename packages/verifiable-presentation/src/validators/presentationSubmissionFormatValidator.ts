@@ -1,4 +1,8 @@
-import { PresentationResult } from '../utils/vpTokenCredentialsExtractor';
+import {
+  PresentationDefinition,
+  PresentationResult,
+  PresentationSubmission,
+} from '../types';
 
 export class PresentationSubmissionFormatValidator {
   private readonly result: PresentationResult;

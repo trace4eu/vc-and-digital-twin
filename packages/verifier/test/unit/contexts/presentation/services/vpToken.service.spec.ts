@@ -7,8 +7,6 @@ import VpTokenService, {
 } from '../../../../../src/contexts/presentation/services/vpToken.service';
 import { VerifierSessionRepository } from '../../../../../src/contexts/presentation/infrastructure/verifierSession.repository';
 import { Openid4vpData } from '../../../../../src/contexts/presentation/services/presentation.service';
-import { PresentationDefinition } from '../../../../../src/contexts/presentation/domain/presentationDefinition.interface';
-import { ClientMetadata } from '../../../../../src/contexts/presentation/domain/clientMetadata.interface';
 import {
   VerificationProcessStatus,
   VerifierSession,

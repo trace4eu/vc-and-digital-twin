@@ -8,7 +8,7 @@ import { VerifierSession } from '../domain/verifierSession';
 import { SessionId } from '../domain/sessionId';
 import { VerifierSessionRepository } from '../infrastructure/verifierSession.repository';
 import { buildB64QrCode } from '../../shared/qrCodeWrapper';
-import { PresentationDefinition } from '../domain/presentationDefinition.interface';
+import { PresentationDefinition } from '@trace4eu/verifiable-presentation';
 import { ClientMetadata } from '../domain/clientMetadata.interface';
 import { getPublicJWKFromPublicHex } from '../../shared/jwkConverter';
 

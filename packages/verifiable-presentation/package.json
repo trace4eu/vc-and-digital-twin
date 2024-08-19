@@ -2,7 +2,8 @@
   "name": "@trace4eu/verifiable-presentation",
   "version": "0.0.1",
   "description": "Verifiable Presentation validator library",
-  "main": "dist/vp-validator.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "release": "standard-version",
     "test": "jest --testPathPattern=/unit",
@@ -28,6 +29,7 @@
     "uuid": "^9.0.1"
   },
   "devDependencies": {
+    "@types/ajv": "^1.0.0",
     "@types/jest": "^29.4.0",
     "@types/jsonpath": "^0.2.4",
     "@types/node": "^18.11.18",

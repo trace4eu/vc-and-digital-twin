@@ -10,7 +10,6 @@ import {
 import { VerifyRequestDto } from './dtos/verifyRequest.dto';
 import IdTokenService from '../contexts/presentation/services/idToken.service';
 import VpTokenService from '../contexts/presentation/services/vpToken.service';
-import PresentationService from '../contexts/presentation/services/presentation.service';
 
 @Controller()
 export class VerifierController {

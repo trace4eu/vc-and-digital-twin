@@ -4,7 +4,7 @@ import PresentationDefinitionService from '../../../src/contexts/presentation/se
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '../../../src/app.module';
 import ResolvedValue = jest.ResolvedValue;
-import { PresentationDefinition } from '../../../src/contexts/presentation/domain/presentationDefinition.interface';
+import { PresentationDefinition } from '@trace4eu/verifiable-presentation';
 import * as request from 'supertest';
 describe('Presentation Definition controller shoud', () => {
   let app: INestApplication;

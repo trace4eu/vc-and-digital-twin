@@ -1,7 +1,10 @@
 import { PresentationValidator } from '../presentationValidatorFactory';
 import { EbsiWrapper } from '../middleware/ebsiWrapper';
-import { VPTokenData } from '../utils/vpTokenCredentialsExtractor';
-import { ValidationResult } from '../types/validationResult';
+import {
+  PresentationValidationOptions,
+  ValidationResult,
+  VPTokenData,
+} from '../types';
 export class EbsiPresentationValidator implements PresentationValidator {
   constructor(
     private vpTokenData: VPTokenData,

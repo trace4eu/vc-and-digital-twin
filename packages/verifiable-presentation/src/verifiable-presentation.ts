@@ -1,9 +1,14 @@
 import { VpTokenCredentialsExtractor } from './utils/vpTokenCredentialsExtractor';
 import { PresentationValidatorFactory } from './presentationValidatorFactory';
-import { ValidationResult } from './types/validationResult';
 import { PresentationSubmissionValidator } from './validators/presentationSubmissionValidator';
 import JsonSchemaWrapper from './middleware/jsonSchemaWrapper';
 import { PresentationSubmissionFormatValidator } from './validators/presentationSubmissionFormatValidator';
+import {
+  PresentationDefinition,
+  PresentationSubmission,
+  PresentationValidationOptions,
+  ValidationResult,
+} from './types';
 
 async function validateJwtVP(
   presentation: string,

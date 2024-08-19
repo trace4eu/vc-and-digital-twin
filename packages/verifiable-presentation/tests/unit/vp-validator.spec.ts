@@ -1,5 +1,5 @@
 import { EbsiPresentationValidator } from '../../src/validators/ebsiPresentationValidator';
-import { validateJwtVP } from '../../src/vp-validator';
+import { validateJwtVP } from '../../src';
 
 describe('Verifiable Presentation library should', () => {
   beforeEach(() => {
