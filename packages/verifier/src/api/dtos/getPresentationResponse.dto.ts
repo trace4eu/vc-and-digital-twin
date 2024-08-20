@@ -5,4 +5,5 @@ export interface GetPresentationResponseDto {
   status: VerificationProcessStatus;
   vpTokenData?: VPTokenData;
   idTokenData?: string;
+  errorMessage?: string;
 }

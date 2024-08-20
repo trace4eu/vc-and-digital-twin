@@ -194,6 +194,7 @@ export interface VPTokenData {
   verifiableCredentialsDecoded?: any[];
   descriptorMapIds?: string[];
   decodedVerifiablePresentation?: VerifiablePresentation;
+  vpToken?: object | object[] | string | string[];
 }
 
 export interface ExtractionResult {

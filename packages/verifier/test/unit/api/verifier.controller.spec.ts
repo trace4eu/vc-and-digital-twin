@@ -3,7 +3,6 @@ import IdTokenService from '../../../src/contexts/presentation/services/idToken.
 import VpTokenService, {
   PresentationResult,
 } from '../../../src/contexts/presentation/services/vpToken.service';
-import PresentationService from '../../../src/contexts/presentation/services/presentation.service';
 import { mock } from 'jest-mock-extended';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '../../../src/app.module';

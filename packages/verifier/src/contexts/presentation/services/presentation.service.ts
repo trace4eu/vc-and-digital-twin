@@ -7,6 +7,7 @@ import { ApiConfig } from '../../../../config/configuration';
 import {
   VerificationProcessStatus,
   VerifierSession,
+  VerifierSessionPrimitives,
 } from '../domain/verifierSession';
 import { SessionId } from '../domain/sessionId';
 import { VerifierSessionRepository } from '../infrastructure/verifierSession.repository';
@@ -103,10 +104,32 @@ export default class PresentationService {
         verifierSessionPrimitives.code === code) ||
       verifierSessionPrimitives.status === VerificationProcessStatus.VERIFIED
     ) {
+      return this.buildGetPresentationResponse(verifierSessionPrimitives);
+    }
+    if (verifierSessionPrimitives.status === VerificationProcessStatus.ERROR) {
+      return this.buildGetPresentationResponse(verifierSessionPrimitives);
+    }
+    return this.buildGetPresentationResponse(verifierSessionPrimitives);
+  }
+
+  private buildGetPresentationResponse(
+    verifierSessionPrimitives: VerifierSessionPrimitives,
+  ): GetPresentationResponseDto {
+    if (
+      verifierSessionPrimitives.status === VerificationProcessStatus.VERIFIED
+    ) {
       return {
         vpTokenData: verifierSessionPrimitives.vpTokenData,
         status: VerificationProcessStatus.VERIFIED,
       };
+    }
+    if (verifierSessionPrimitives.status === VerificationProcessStatus.ERROR) {
+      const response: GetPresentationResponseDto = {
+        status: verifierSessionPrimitives.status,
+      };
+      if (verifierSessionPrimitives.errorMessage)
+        response.errorMessage = verifierSessionPrimitives.errorMessage;
+      return response;
     }
     return {
       status: VerificationProcessStatus.PENDING,

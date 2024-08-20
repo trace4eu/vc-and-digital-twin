@@ -99,6 +99,7 @@ describe('vpTokenCredentialExtractor should', () => {
     expect(credentials).toEqual({
       result: { valid: true },
       vpTokenData: {
+        vpToken,
         descriptorMapIds: [
           'ID Card with constraints',
           'Ontario Health Insurance Plan',
@@ -243,7 +244,9 @@ describe('vpTokenCredentialExtractor should', () => {
         message:
           'Verifiable presentation/credential not found for this path: $[0].verifiableCredential[0]',
       },
-      vpTokenData: undefined,
+      vpTokenData: {
+        vpToken,
+      },
     });
   });
 
@@ -328,6 +331,7 @@ describe('vpTokenCredentialExtractor should', () => {
     expect(credentials).toEqual({
       result: { valid: true },
       vpTokenData: {
+        vpToken,
         descriptorMapIds: ['ID Card with constraints'],
         verifiableCredentialsDecoded: [decodedCredential],
         verifiableCredentials: [
@@ -433,6 +437,7 @@ describe('vpTokenCredentialExtractor should', () => {
     expect(credentials).toEqual({
       result: { valid: true },
       vpTokenData: {
+        vpToken,
         descriptorMapIds: [
           'Ontario Health Insurance Plan',
           'Ontario Health Insurance Plan',
@@ -585,6 +590,7 @@ describe('vpTokenCredentialExtractor should', () => {
     expect(credentials).toEqual({
       result: { valid: true },
       vpTokenData: {
+        vpToken,
         descriptorMapIds: ['Ontario Health Insurance Plan'],
         verifiableCredentialsDecoded: [
           {
@@ -687,6 +693,7 @@ describe('vpTokenCredentialExtractor should', () => {
     expect(credentials).toEqual({
       result: { valid: true },
       vpTokenData: {
+        vpToken,
         vpTokenIssuer:
           'did:key:z2dmzD81cgPx8Vki7JbuuMmFYrWPgYoytykUZ3eyqht1j9KbsEYvdrjxMjQ4tpnje9BDBTzuNDP3knn6qLZErzd4bJ5go2CChoPjd5GAH3zpFJP5fuwSk66U5Pq6EhF4nKnHzDnznEP8fX99nZGgwbAh1o7Gj1X52Tdhf7U4KTk66xsA5r',
 

@@ -12,7 +12,10 @@ import VerifierSessionAlreadyVerifiedException from '../exceptions/verifierSessi
 import { VpValidatorWrapper } from '../../shared/vpValidatorWrapper';
 import { ConfigService } from '@nestjs/config';
 import { ApiConfig } from '../../../../config/configuration';
-import { ValidationResult } from '@trace4eu/verifiable-presentation';
+import {
+  ValidationResult,
+  VPTokenData,
+} from '@trace4eu/verifiable-presentation';
 
 export interface PresentationResult {
   valid: boolean;
@@ -58,17 +61,33 @@ export default class VpTokenService {
     }
 
     let result = this.validateVpFormat(presentationRequestDto.vp_token);
-    if (!result.valid) return this.getResult(result);
+    if (!result.valid) {
+      await this.saveVerifierSession(
+        verifierSession,
+        VerificationProcessStatus.ERROR,
+        undefined,
+        result.message,
+      );
+      return this.getResult(result);
+    }
     const decodedToken = joseWrapper.decodeJWT(
       presentationRequestDto.vp_token as string,
     );
-    // validate state&nonce from jwt_vp
+
     result = this.validateVerifierSession(
       verifierSession,
       (decodedToken as { state: string }).state,
       (decodedToken as { nonce: string }).nonce,
     );
-    if (!result.valid) return this.getResult(result);
+    if (!result.valid) {
+      await this.saveVerifierSession(
+        verifierSession,
+        VerificationProcessStatus.ERROR,
+        undefined,
+        result.message,
+      );
+      return this.getResult(result);
+    }
 
     const validationResult: ValidationResult =
       await this.vpValidatorWrapper.validateJwtVP(
@@ -83,18 +102,23 @@ export default class VpTokenService {
         },
       );
     if (!validationResult.valid) {
+      const errorMessage = validationResult.messages?.concat().toString();
+      await this.saveVerifierSession(
+        verifierSession,
+        VerificationProcessStatus.ERROR,
+        validationResult.vpData,
+        errorMessage,
+      );
       return this.getResult({
         valid: validationResult.valid,
-        message: validationResult.messages?.concat().toString(),
+        message: errorMessage,
       });
     }
 
-    //update verifier session
-    const verifierSessionPrimitives = verifierSession.toPrimitives();
-    verifierSessionPrimitives.status = VerificationProcessStatus.VERIFIED;
-    verifierSessionPrimitives.vpTokenData = validationResult.vpData;
-    await this.verifierSessionRepository.save(
-      VerifierSession.fromPrimitives(verifierSessionPrimitives),
+    await this.saveVerifierSession(
+      verifierSession,
+      VerificationProcessStatus.VERIFIED,
+      validationResult.vpData,
     );
 
     return this.getResult(result);
@@ -143,5 +167,20 @@ export default class VpTokenService {
     } catch (error) {
       return { valid: false };
     }
+  }
+
+  private async saveVerifierSession(
+    verifierSession: VerifierSession,
+    verifierSessionStatus: VerificationProcessStatus,
+    vpData?: VPTokenData,
+    errorMessage?: string,
+  ) {
+    const verifierSessionPrimitives = verifierSession.toPrimitives();
+    verifierSessionPrimitives.status = verifierSessionStatus;
+    if (vpData) verifierSessionPrimitives.vpTokenData = vpData;
+    if (errorMessage) verifierSessionPrimitives.errorMessage = errorMessage;
+    await this.verifierSessionRepository.save(
+      VerifierSession.fromPrimitives(verifierSessionPrimitives),
+    );
   }
 }

@@ -78,6 +78,7 @@ export class VpTokenCredentialsExtractor {
         descriptorMapIds: descriptorMapIds,
         vpTokenIssuer: this.vpTokenIssuer,
         decodedVerifiablePresentation: this.decodedVerifiablePresentation,
+        vpToken: this.vpToken,
       },
     };
   }
@@ -94,7 +95,10 @@ export class VpTokenCredentialsExtractor {
         this.vpToken,
       );
       if (!extractorResult.valid) {
-        return { result: extractorResult, vpTokenData: undefined };
+        return {
+          result: extractorResult,
+          vpTokenData: { vpToken: this.vpToken },
+        };
       }
       verifiableCredentials.push(extractorResult.verifiableCredential);
       if (
@@ -118,6 +122,7 @@ export class VpTokenCredentialsExtractor {
         descriptorMapIds: descriptorMapIds,
         vpTokenIssuer: this.vpTokenIssuer,
         decodedVerifiablePresentation: this.decodedVerifiablePresentation,
+        vpToken: this.vpToken,
       },
     };
   }

@@ -8,6 +8,7 @@ import {
 export enum VerificationProcessStatus {
   PENDING = 'pending',
   VERIFIED = 'verified',
+  ERROR = 'error',
 }
 
 export interface VerifierSessionPrimitives {
@@ -16,6 +17,7 @@ export interface VerifierSessionPrimitives {
   openid4vpData: Openid4vpData;
   code?: string;
   vpTokenData?: VPTokenData;
+  errorMessage?: string;
 }
 export class VerifierSession {
   constructor(
@@ -24,6 +26,7 @@ export class VerifierSession {
     private openid4vpData: Openid4vpData,
     private code?: string,
     private vpTokenData?: VPTokenData,
+    private errorMessage?: string,
   ) {}
 
   static buildFromOpenid4vpRequest(
@@ -46,6 +49,7 @@ export class VerifierSession {
       primitives.openid4vpData,
       primitives.code,
       primitives.vpTokenData,
+      primitives.errorMessage,
     );
   }
 
@@ -56,6 +60,7 @@ export class VerifierSession {
       openid4vpData: this.openid4vpData,
       code: this.code,
       vpTokenData: this.vpTokenData,
+      errorMessage: this.errorMessage,
     };
   }
 
