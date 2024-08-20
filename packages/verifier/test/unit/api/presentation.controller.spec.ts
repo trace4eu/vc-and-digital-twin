@@ -55,7 +55,7 @@ describe('Verifier Controller should', () => {
       nonce: 'nonce',
       responseMode: 'direct_post',
       presentationDefinitionMode: 'by_value',
-      callbackUrl: 'callbackUrl',
+      redirectUri: 'callbackUrl',
     };
 
     const expectedResponse = {

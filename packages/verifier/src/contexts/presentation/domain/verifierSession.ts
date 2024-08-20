@@ -1,6 +1,9 @@
 import { SessionId } from './sessionId';
 import { Openid4vpData } from '../services/presentation.service';
-import { PresentationDefinition } from '@trace4eu/verifiable-presentation';
+import {
+  PresentationDefinition,
+  VPTokenData,
+} from '@trace4eu/verifiable-presentation';
 
 export enum VerificationProcessStatus {
   PENDING = 'pending',
@@ -12,6 +15,7 @@ export interface VerifierSessionPrimitives {
   status: VerificationProcessStatus;
   openid4vpData: Openid4vpData;
   code?: string;
+  vpTokenData?: VPTokenData;
 }
 export class VerifierSession {
   constructor(
@@ -19,6 +23,7 @@ export class VerifierSession {
     private status: VerificationProcessStatus,
     private openid4vpData: Openid4vpData,
     private code?: string,
+    private vpTokenData?: VPTokenData,
   ) {}
 
   static buildFromOpenid4vpRequest(
@@ -40,6 +45,7 @@ export class VerifierSession {
       primitives.status,
       primitives.openid4vpData,
       primitives.code,
+      primitives.vpTokenData,
     );
   }
 
@@ -49,6 +55,7 @@ export class VerifierSession {
       status: this.status,
       openid4vpData: this.openid4vpData,
       code: this.code,
+      vpTokenData: this.vpTokenData,
     };
   }
 
@@ -65,18 +72,18 @@ export class VerifierSession {
   }
 
   getState(): string | undefined {
-    if (this.openid4vpData?.state) {
-      return this.openid4vpData.state;
-    }
-    return undefined;
+    return this.openid4vpData.state;
+  }
+  getNonce(): string {
+    return this.openid4vpData.state;
   }
 
   getCode(): string | undefined {
     return this.code;
   }
 
-  getCallbackURL(): string | undefined {
-    return this.openid4vpData?.callbackUrl;
+  getRedirectUri(): string | undefined {
+    return this.openid4vpData.redirectUri;
   }
 
   setCode(code: string) {

@@ -9,6 +9,10 @@ import {
 import joseWrapper from '../../shared/joseWrapper';
 import { Uuid } from '../../shared/domain/uuid';
 import VerifierSessionAlreadyVerifiedException from '../exceptions/verifierSessionAlreadyVerified.exception';
+import { VpValidatorWrapper } from '../../shared/vpValidatorWrapper';
+import { ConfigService } from '@nestjs/config';
+import { ApiConfig } from '../../../../config/configuration';
+import { ValidationResult } from '@trace4eu/verifiable-presentation';
 
 export interface PresentationResult {
   valid: boolean;
@@ -23,7 +27,14 @@ export default class VpTokenService {
   private redirectUri: string | undefined;
   private code: string;
   private state: string | undefined;
-  constructor(private verifierSessionRepository: VerifierSessionRepository) {}
+  private ebsiAuthority: string;
+  constructor(
+    private verifierSessionRepository: VerifierSessionRepository,
+    private vpValidatorWrapper: VpValidatorWrapper,
+    private configService: ConfigService<ApiConfig, true>,
+  ) {
+    this.ebsiAuthority = this.configService.get<string>('ebsiAuthority');
+  }
 
   async execute(
     sessionId: string,
@@ -36,14 +47,9 @@ export default class VpTokenService {
         message: 'session expired',
       } as PresentationResult;
     }
-    const result: PresentationResult = this.validateVerifierSession(
-      verifierSession,
-      presentationRequestDto.state,
-    );
-    if (!result.valid) return result;
 
     this.state = verifierSession.getState();
-    this.redirectUri = verifierSession.getCallbackURL();
+    this.redirectUri = verifierSession.getRedirectUri();
     if (this.redirectUri) {
       this.code = Uuid.generate().toString();
       verifierSession.setCode(this.code);
@@ -51,21 +57,44 @@ export default class VpTokenService {
       this.redirectUri = 'openid://';
     }
 
-    let decodedToken = presentationRequestDto.vp_token;
-    let isJwtVP = false;
-    if (typeof decodedToken === 'string') {
-      isJwtVP = true;
-      decodedToken = joseWrapper.decodeJWT(
+    let result = this.validateVpFormat(presentationRequestDto.vp_token);
+    if (!result.valid) return this.getResult(result);
+    const decodedToken = joseWrapper.decodeJWT(
+      presentationRequestDto.vp_token as string,
+    );
+    // validate state&nonce from jwt_vp
+    result = this.validateVerifierSession(
+      verifierSession,
+      (decodedToken as { state: string }).state,
+      (decodedToken as { nonce: string }).nonce,
+    );
+    if (!result.valid) return this.getResult(result);
+
+    const validationResult: ValidationResult =
+      await this.vpValidatorWrapper.validateJwtVP(
         presentationRequestDto.vp_token as string,
+        (decodedToken as { aud: string }).aud,
+        {
+          presentationSubmission:
+            presentationRequestDto.presentation_submission,
+          presentationDefinition: verifierSession.getPresentationDefinition(),
+          ebsiAuthority: this.ebsiAuthority,
+        },
       );
+    if (!validationResult.valid) {
+      return this.getResult({
+        valid: validationResult.valid,
+        message: validationResult.messages?.concat().toString(),
+      });
     }
 
-    // validate Presentation
-    // if not valid return { valid: false, message }
-    // if valid => extract data (vpTokenIssuer, verifiableCredentials, verifiableCredentialsDecoded, descriptorMapIds, presentationSubmission)
-    // use library verifiable-presentation fr that purpose
-    // update verifier session
-    // ToDO: status list credential (revocation)
+    //update verifier session
+    const verifierSessionPrimitives = verifierSession.toPrimitives();
+    verifierSessionPrimitives.status = VerificationProcessStatus.VERIFIED;
+    verifierSessionPrimitives.vpTokenData = validationResult.vpData;
+    await this.verifierSessionRepository.save(
+      VerifierSession.fromPrimitives(verifierSessionPrimitives),
+    );
 
     return this.getResult(result);
   }
@@ -79,6 +108,7 @@ export default class VpTokenService {
   private validateVerifierSession(
     verifierSession: VerifierSession,
     state?: string,
+    nonce?: string,
   ) {
     if (verifierSession.getStatus() !== VerificationProcessStatus.PENDING) {
       throw new VerifierSessionAlreadyVerifiedException(
@@ -87,15 +117,30 @@ export default class VpTokenService {
     }
     if (state && verifierSession.getState() !== state)
       return { valid: false, message: 'invalid state' };
+    if (nonce && verifierSession.getNonce() !== nonce)
+      return { valid: false, message: 'invalid state' };
     return { valid: true };
   }
 
   private getResult(result: PresentationResult): PresentationResult {
-    return {
-      ...result,
-      redirectUri: this.redirectUri,
-      code: this.code,
-      state: this.state,
-    };
+    if (this.redirectUri) result.redirectUri = this.redirectUri;
+    if (this.code) result.code = this.code;
+    if (this.state) result.state = this.state;
+    return result;
+  }
+
+  private validateVpFormat(vpToken: any): PresentationResult {
+    if (typeof vpToken !== 'string') {
+      return {
+        valid: false,
+        message: 'vp format not supported',
+      } as PresentationResult;
+    }
+    try {
+      joseWrapper.decodeJWT(vpToken);
+      return { valid: true };
+    } catch (error) {
+      return { valid: false };
+    }
   }
 }

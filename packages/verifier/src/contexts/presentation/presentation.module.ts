@@ -11,6 +11,7 @@ import PresentationDefinitionService from './services/presentationDefinition.ser
 import { VerifierController } from '../../api/verifier.controller';
 import IdTokenService from './services/idToken.service';
 import VpTokenService from './services/vpToken.service';
+import { VpValidatorWrapper } from '../shared/vpValidatorWrapper';
 
 @Module({
   imports: [],
@@ -30,6 +31,7 @@ import VpTokenService from './services/vpToken.service';
     IdTokenService,
     VpTokenService,
     PresentationService,
+    VpValidatorWrapper,
   ],
 })
 export class PresentationModule {}

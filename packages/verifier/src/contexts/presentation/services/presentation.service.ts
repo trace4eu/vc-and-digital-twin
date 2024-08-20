@@ -4,13 +4,18 @@ import { InitPresentationResponseDto } from '../../../api/dtos/initPresentationR
 import { Uuid } from '../../shared/domain/uuid';
 import { ConfigService } from '@nestjs/config';
 import { ApiConfig } from '../../../../config/configuration';
-import { VerifierSession } from '../domain/verifierSession';
+import {
+  VerificationProcessStatus,
+  VerifierSession,
+} from '../domain/verifierSession';
 import { SessionId } from '../domain/sessionId';
 import { VerifierSessionRepository } from '../infrastructure/verifierSession.repository';
 import { buildB64QrCode } from '../../shared/qrCodeWrapper';
 import { PresentationDefinition } from '@trace4eu/verifiable-presentation';
 import { ClientMetadata } from '../domain/clientMetadata.interface';
 import { getPublicJWKFromPublicHex } from '../../shared/jwkConverter';
+import VerifierSessionIdNotExistsException from '../exceptions/verifierSessionIdNotExists.exception';
+import { GetPresentationResponseDto } from '../../../api/dtos/getPresentationResponse.dto';
 
 export interface Openid4vpData {
   responseType: string;
@@ -19,7 +24,7 @@ export interface Openid4vpData {
   presentationDefinitionMode: string;
   state: string;
   nonce: string;
-  callbackUrl?: string;
+  redirectUri?: string;
   clientMetadata?: ClientMetadata;
 }
 @Injectable()
@@ -80,6 +85,32 @@ export default class PresentationService {
       this.openid4vpRequestProtocol,
       this.clientId,
     );
+  }
+
+  async getPresentation(
+    sessionId: string,
+    code?: string,
+  ): Promise<GetPresentationResponseDto> {
+    const verifierSession = await this.verifierSessionRepository.getByKey(
+      new SessionId(sessionId),
+    );
+    if (!verifierSession)
+      throw new VerifierSessionIdNotExistsException(sessionId);
+    const verifierSessionPrimitives = verifierSession.toPrimitives();
+    if (
+      (code &&
+        verifierSessionPrimitives.code &&
+        verifierSessionPrimitives.code === code) ||
+      verifierSessionPrimitives.status === VerificationProcessStatus.VERIFIED
+    ) {
+      return {
+        vpTokenData: verifierSessionPrimitives.vpTokenData,
+        status: VerificationProcessStatus.VERIFIED,
+      };
+    }
+    return {
+      status: VerificationProcessStatus.PENDING,
+    };
   }
 
   private async buildOpenid4vpResponse(

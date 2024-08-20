@@ -13,6 +13,7 @@ export interface ApiConfig {
   verifierClientId: string | undefined;
   openid4vpRequestProtocol: string | undefined;
   openid4vpRequestObjectExp: number;
+  ebsiAuthority: string | undefined;
 }
 
 export const loadConfig = (): ApiConfig => {
@@ -31,6 +32,7 @@ export const loadConfig = (): ApiConfig => {
       process.env.OPENID4VP_REQUEST_OBJECT_EXP || '300',
       10,
     ),
+    ebsiAuthority: `api-${process.env.EBSI_ENVIRONMENT}.ebsi.eu`,
   };
 };
 
@@ -54,5 +56,6 @@ export const ApiConfigModule = ConfigModule.forRoot({
     VERIFIER_CLIENT_ID: Joi.string().empty().required(),
     OPENID4VP_REQUEST_PROTOCOL: Joi.string().default('openid4vp://'),
     OPENID4VP_REQUEST_OBJECT_EXP: Joi.string().pattern(/^\d+$/).default('300'),
+    EBSI_ENVIRONMENT: Joi.string().empty().default('pilot'),
   }),
 });

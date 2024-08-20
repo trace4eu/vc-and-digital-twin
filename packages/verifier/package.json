@@ -27,10 +27,10 @@
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/swagger": "^7.4.0",
     "@nestjs/terminus": "^10.2.3",
+    "@trace4eu/verifiable-presentation": "/Users/pcosio/workspace/trace4EU/vc-component/packages/verifiable-presentation",
     "base64url": "^3.0.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
-    "elliptic": "^6.5.6",
     "ioredis": "^5.4.1",
     "joi": "^17.13.3",
     "jose": "^5.6.3",
@@ -38,10 +38,10 @@
     "qrcode": "^1.5.4",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
-    "uuid": "^10.0.0",
-    "@trace4eu/verifiable-presentation":"/Users/pcosio/workspace/trace4EU/vc-component/packages/verifiable-presentation"
+    "uuid": "^10.0.0"
   },
   "devDependencies": {
+    "@cef-ebsi/verifiable-credential": "^4.4.2",
     "@nestjs/cli": "^10.0.0",
     "@nestjs/schematics": "^10.0.0",
     "@nestjs/testing": "^10.0.0",
@@ -54,6 +54,7 @@
     "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
+    "elliptic": "^6.5.7",
     "eslint": "^8.42.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.0",

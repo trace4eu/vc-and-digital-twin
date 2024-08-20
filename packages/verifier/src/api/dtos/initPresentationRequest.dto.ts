@@ -33,5 +33,5 @@ export class InitPresentationRequestDto {
 
   @IsOptional()
   @IsString()
-  callbackUrl?: string;
+  redirectUri?: string;
 }
