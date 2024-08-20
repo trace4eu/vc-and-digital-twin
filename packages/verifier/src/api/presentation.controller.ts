@@ -2,7 +2,6 @@ import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { InitPresentationRequestDto } from './dtos/initPresentationRequest.dto';
 import { InitPresentationResponseDto } from './dtos/initPresentationResponse.dto';
 import PresentationService from '../contexts/presentation/services/presentation.service';
-import { VPTokenData } from '@trace4eu/verifiable-presentation';
 import { GetPresentationResponseDto } from './dtos/getPresentationResponse.dto';
 
 @Controller('presentations')

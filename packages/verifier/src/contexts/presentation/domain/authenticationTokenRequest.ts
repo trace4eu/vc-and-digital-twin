@@ -3,7 +3,8 @@ import { ClientMetadata } from './clientMetadata.interface';
 export default interface AuthenticationTokenRequestPrimitives {
   state: string;
   client_id: string;
-  redirect_uri: string;
+  redirect_uri?: string;
+  response_uri?: string;
   response_type: string;
   response_mode: string;
   scope: 'openid';
@@ -21,6 +22,7 @@ export default interface AuthenticationTokenRequestPrimitives {
 export class AuthenticationTokenRequest {
   public request?: string;
   public request_uri?: string;
+  public response_uri?: string;
   public exp?: number;
   public presentation_definition?: object;
   public presentation_definition_uri?: string;
@@ -28,7 +30,6 @@ export class AuthenticationTokenRequest {
   private constructor(
     private state: string,
     private client_id: string,
-    private redirect_uri: string,
     private response_type: string,
     private response_mode: string,
     private scope: 'openid',
@@ -42,7 +43,6 @@ export class AuthenticationTokenRequest {
     const tokenRequest = new AuthenticationTokenRequest(
       authenticationTokenRequestPrimitives.state,
       authenticationTokenRequestPrimitives.client_id,
-      authenticationTokenRequestPrimitives.redirect_uri,
       authenticationTokenRequestPrimitives.response_type,
       authenticationTokenRequestPrimitives.response_mode,
       authenticationTokenRequestPrimitives.scope,
@@ -50,6 +50,11 @@ export class AuthenticationTokenRequest {
       authenticationTokenRequestPrimitives.aud,
       authenticationTokenRequestPrimitives.iss,
     );
+
+    if (authenticationTokenRequestPrimitives.response_uri) {
+      tokenRequest.response_uri =
+        authenticationTokenRequestPrimitives.response_uri;
+    }
 
     if (authenticationTokenRequestPrimitives.exp) {
       tokenRequest.exp = authenticationTokenRequestPrimitives.exp;
@@ -80,7 +85,6 @@ export class AuthenticationTokenRequest {
     const tokenRequestPrimitives: AuthenticationTokenRequestPrimitives = {
       state: this.state,
       client_id: this.client_id,
-      redirect_uri: this.redirect_uri,
       response_type: this.response_type,
       response_mode: this.response_mode,
       scope: this.scope,
@@ -88,6 +92,9 @@ export class AuthenticationTokenRequest {
       nonce: this.nonce,
       iss: this.iss,
     };
+    if (this.response_uri) {
+      tokenRequestPrimitives.response_uri = this.response_uri;
+    }
     if (this.exp) {
       tokenRequestPrimitives.exp = this.exp;
     }

@@ -75,8 +75,9 @@ export default class VpTokenService {
         presentationRequestDto.vp_token as string,
         (decodedToken as { aud: string }).aud,
         {
-          presentationSubmission:
+          presentationSubmission: JSON.parse(
             presentationRequestDto.presentation_submission,
+          ),
           presentationDefinition: verifierSession.getPresentationDefinition(),
           ebsiAuthority: this.ebsiAuthority,
         },
@@ -118,7 +119,7 @@ export default class VpTokenService {
     if (state && verifierSession.getState() !== state)
       return { valid: false, message: 'invalid state' };
     if (nonce && verifierSession.getNonce() !== nonce)
-      return { valid: false, message: 'invalid state' };
+      return { valid: false, message: 'invalid nonce' };
     return { valid: true };
   }
 

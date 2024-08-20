@@ -1,5 +1,4 @@
-import { IsObject, IsOptional, IsString } from 'class-validator';
-import { PresentationSubmission } from '@trace4eu/verifiable-presentation';
+import { IsOptional, IsString } from 'class-validator';
 
 export class VerifyRequestDto {
   @IsOptional()
@@ -13,6 +12,6 @@ export class VerifyRequestDto {
   id_token?: string;
 
   @IsOptional()
-  @IsObject()
-  presentation_submission: PresentationSubmission;
+  @IsString()
+  presentation_submission: string;
 }

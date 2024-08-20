@@ -7,6 +7,8 @@ import { InitPresentationRequestDto } from '../../../src/api/dtos/initPresentati
 import PresentationService from '../../../src/contexts/presentation/services/presentation.service';
 import { InitPresentationResponseDto } from '../../../src/api/dtos/initPresentationResponse.dto';
 import ResolvedValue = jest.ResolvedValue;
+import { GetPresentationResponseDto } from '../../../src/api/dtos/getPresentationResponse.dto';
+import { VerificationProcessStatus } from '../../../src/contexts/presentation/domain/verifierSession';
 describe('Verifier Controller should', () => {
   let app: INestApplication;
   const presentationService = mock<PresentationService>();
@@ -75,5 +77,40 @@ describe('Verifier Controller should', () => {
 
     expect(response.statusCode).toBe(HttpStatus.CREATED);
     expect(response.body).toBeDefined();
+  });
+
+  it('get a presentation with code', async () => {
+    const expectedResponse = {
+      status: VerificationProcessStatus.VERIFIED,
+      vpTokenData: {
+        vpTokenIssuer: 'did:key:12345',
+      },
+    };
+    presentationService.getPresentation.mockResolvedValue(
+      expectedResponse as ResolvedValue<GetPresentationResponseDto>,
+    );
+    const response = await request(app.getHttpServer()).get(
+      '/presentations/132446?code=1234',
+    );
+
+    expect(response.statusCode).toBe(HttpStatus.OK);
+    expect(response.body).toStrictEqual(expectedResponse);
+  });
+  it('get a presentation without code', async () => {
+    const expectedResponse = {
+      status: VerificationProcessStatus.VERIFIED,
+      vpTokenData: {
+        vpTokenIssuer: 'did:key:12345',
+      },
+    };
+    presentationService.getPresentation.mockResolvedValue(
+      expectedResponse as ResolvedValue<GetPresentationResponseDto>,
+    );
+    const response = await request(app.getHttpServer()).get(
+      '/presentations/132446',
+    );
+
+    expect(response.statusCode).toBe(HttpStatus.OK);
+    expect(response.body).toStrictEqual(expectedResponse);
   });
 });

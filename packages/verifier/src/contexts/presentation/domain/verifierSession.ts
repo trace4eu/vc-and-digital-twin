@@ -75,11 +75,7 @@ export class VerifierSession {
     return this.openid4vpData.state;
   }
   getNonce(): string {
-    return this.openid4vpData.state;
-  }
-
-  getCode(): string | undefined {
-    return this.code;
+    return this.openid4vpData.nonce;
   }
 
   getRedirectUri(): string | undefined {
