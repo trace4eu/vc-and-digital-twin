@@ -27,7 +27,7 @@
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/swagger": "^7.4.0",
     "@nestjs/terminus": "^10.2.3",
-    "@trace4eu/verifiable-presentation": "/Users/pcosio/workspace/trace4EU/vc-component/packages/verifiable-presentation",
+    "@trace4eu/verifiable-presentation": "^0.0.1",
     "@transmute/did-key.js": "^0.2.1-unstable.42",
     "base64url": "^3.0.1",
     "class-transformer": "^0.5.1",
