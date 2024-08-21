@@ -6,10 +6,10 @@ import {
   VerificationProcessStatus,
   VerifierSession,
 } from '../domain/verifierSession';
-import joseWrapper from '../../shared/joseWrapper';
+import joseWrapper from '../../shared/middleware/joseWrapper';
 import { Uuid } from '../../shared/domain/uuid';
 import VerifierSessionAlreadyVerifiedException from '../exceptions/verifierSessionAlreadyVerified.exception';
-import { VpValidatorWrapper } from '../../shared/vpValidatorWrapper';
+import { VpValidatorWrapper } from '../../shared/middleware/vpValidatorWrapper';
 import { ConfigService } from '@nestjs/config';
 import { ApiConfig } from '../../../../config/configuration';
 import {

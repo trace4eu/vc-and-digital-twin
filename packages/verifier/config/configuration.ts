@@ -14,6 +14,7 @@ export interface ApiConfig {
   openid4vpRequestProtocol: string | undefined;
   openid4vpRequestObjectExp: number;
   ebsiAuthority: string | undefined;
+  ebsiDidResolver: string | undefined;
 }
 
 export const loadConfig = (): ApiConfig => {
@@ -33,6 +34,7 @@ export const loadConfig = (): ApiConfig => {
       10,
     ),
     ebsiAuthority: `api-${process.env.EBSI_ENVIRONMENT}.ebsi.eu`,
+    ebsiDidResolver: `https://api-${process.env.EBSI_ENVIRONMENT}.ebsi.eu/did-registry/v5/identifiers`,
   };
 };
 

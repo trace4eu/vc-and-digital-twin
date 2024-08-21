@@ -8,8 +8,8 @@ import VerifierSessionIdNotExistsException from '../exceptions/verifierSessionId
 import VerifierSessionAlreadyVerifiedException from '../exceptions/verifierSessionAlreadyVerified.exception';
 import { TokenRequestPayloadCreator } from '../domain/tokenRequestPayloadCreator';
 import { AuthenticationTokenRequest } from '../domain/authenticationTokenRequest';
-import joseWrapper from '../../shared/joseWrapper';
-import { getJWKfromHex } from '../../shared/jwkConverter';
+import joseWrapper from '../../shared/middleware/joseWrapper';
+import { getJWKfromHex } from '../../shared/middleware/jwkConverter';
 
 @Injectable()
 export default class RequestService {

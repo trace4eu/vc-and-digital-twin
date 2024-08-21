@@ -2,7 +2,7 @@ import { Test } from '@nestjs/testing';
 import { AppModule } from '../../src/app.module';
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import joseWrapper from '../../src/contexts/shared/joseWrapper';
+import joseWrapper from '../../src/contexts/shared/middleware/joseWrapper';
 import { ec as EC } from 'elliptic';
 
 describe('Presentation e2e flow', () => {

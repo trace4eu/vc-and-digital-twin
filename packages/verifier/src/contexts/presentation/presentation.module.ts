@@ -11,7 +11,11 @@ import PresentationDefinitionService from './services/presentationDefinition.ser
 import { VerifierController } from '../../api/verifier.controller';
 import IdTokenService from './services/idToken.service';
 import VpTokenService from './services/vpToken.service';
-import { VpValidatorWrapper } from '../shared/vpValidatorWrapper';
+import { VpValidatorWrapper } from '../shared/middleware/vpValidatorWrapper';
+import { DidJwtWrapper } from '../shared/middleware/didJwtWrapper';
+import ResolverFactory from '../shared/resolvers/resolverFactory';
+import DidKeyResolver from '../shared/resolvers/DidKeyResolver';
+import DidEbsiResolver from '../shared/resolvers/DidEbsiResolver';
 
 @Module({
   imports: [],
@@ -32,6 +36,10 @@ import { VpValidatorWrapper } from '../shared/vpValidatorWrapper';
     VpTokenService,
     PresentationService,
     VpValidatorWrapper,
+    DidEbsiResolver,
+    DidKeyResolver,
+    DidJwtWrapper,
+    ResolverFactory,
   ],
 })
 export class PresentationModule {}

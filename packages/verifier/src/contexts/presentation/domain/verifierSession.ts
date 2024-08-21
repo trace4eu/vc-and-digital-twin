@@ -17,6 +17,7 @@ export interface VerifierSessionPrimitives {
   openid4vpData: Openid4vpData;
   code?: string;
   vpTokenData?: VPTokenData;
+  idToken?: string;
   errorMessage?: string;
 }
 export class VerifierSession {
@@ -26,6 +27,7 @@ export class VerifierSession {
     private openid4vpData: Openid4vpData,
     private code?: string,
     private vpTokenData?: VPTokenData,
+    private idToken?: string,
     private errorMessage?: string,
   ) {}
 
@@ -49,6 +51,7 @@ export class VerifierSession {
       primitives.openid4vpData,
       primitives.code,
       primitives.vpTokenData,
+      primitives.idToken,
       primitives.errorMessage,
     );
   }
@@ -60,6 +63,7 @@ export class VerifierSession {
       openid4vpData: this.openid4vpData,
       code: this.code,
       vpTokenData: this.vpTokenData,
+      idToken: this.idToken,
       errorMessage: this.errorMessage,
     };
   }
@@ -72,8 +76,8 @@ export class VerifierSession {
     return this.status;
   }
 
-  getPresentationDefinition(): PresentationDefinition {
-    return this.openid4vpData.presentationDefinition;
+  getPresentationDefinition(): PresentationDefinition | undefined {
+    return this.openid4vpData?.presentationDefinition;
   }
 
   getState(): string | undefined {

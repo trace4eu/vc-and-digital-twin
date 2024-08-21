@@ -11,18 +11,19 @@ import {
 } from '../domain/verifierSession';
 import { SessionId } from '../domain/sessionId';
 import { VerifierSessionRepository } from '../infrastructure/verifierSession.repository';
-import { buildB64QrCode } from '../../shared/qrCodeWrapper';
+import { buildB64QrCode } from '../../shared/middleware/qrCodeWrapper';
 import { PresentationDefinition } from '@trace4eu/verifiable-presentation';
 import { ClientMetadata } from '../domain/clientMetadata.interface';
-import { getPublicJWKFromPublicHex } from '../../shared/jwkConverter';
+import { getPublicJWKFromPublicHex } from '../../shared/middleware/jwkConverter';
 import VerifierSessionIdNotExistsException from '../exceptions/verifierSessionIdNotExists.exception';
 import { GetPresentationResponseDto } from '../../../api/dtos/getPresentationResponse.dto';
 
 export interface Openid4vpData {
+  clientId: string;
   responseType: string;
   responseMode: string;
-  presentationDefinition: PresentationDefinition;
-  presentationDefinitionMode: string;
+  presentationDefinition?: PresentationDefinition;
+  presentationDefinitionMode?: string;
   state: string;
   nonce: string;
   redirectUri?: string;
@@ -181,6 +182,7 @@ export default class PresentationService {
     };
 
     return {
+      clientId: this.clientId,
       state: state,
       ...presentationRequest,
       clientMetadata: clientMetadataWithJwks,

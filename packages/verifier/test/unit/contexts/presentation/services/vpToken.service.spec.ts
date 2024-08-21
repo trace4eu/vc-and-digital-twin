@@ -12,7 +12,7 @@ import {
   VerifierSession,
 } from '../../../../../src/contexts/presentation/domain/verifierSession';
 import VerifierSessionAlreadyVerifiedException from '../../../../../src/contexts/presentation/exceptions/verifierSessionAlreadyVerified.exception';
-import { VpValidatorWrapper } from '../../../../../src/contexts/shared/vpValidatorWrapper';
+import { VpValidatorWrapper } from '../../../../../src/contexts/shared/middleware/vpValidatorWrapper';
 import { ConfigService } from '@nestjs/config';
 import { ApiConfig } from '../../../../../config/configuration';
 
@@ -68,6 +68,7 @@ describe('VP token service should', () => {
   });
   it('return an error if state is wrong', async () => {
     const openid4vpData: Openid4vpData = {
+      clientId: 'clientId',
       responseType: 'vp_token',
       responseMode: 'direct_post',
       presentationDefinition: {
@@ -128,6 +129,7 @@ describe('VP token service should', () => {
   });
   it('raise an exception if verifier session has been already verified', async () => {
     const openid4vpData: Openid4vpData = {
+      clientId: 'clientId',
       responseType: 'vp_token',
       responseMode: 'direct_post',
       presentationDefinition: {
