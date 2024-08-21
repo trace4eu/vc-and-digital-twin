@@ -17,6 +17,7 @@ import { ClientMetadata } from '../domain/clientMetadata.interface';
 import { getPublicJWKFromPublicHex } from '../../shared/middleware/jwkConverter';
 import VerifierSessionIdNotExistsException from '../exceptions/verifierSessionIdNotExists.exception';
 import { GetPresentationResponseDto } from '../../../api/dtos/getPresentationResponse.dto';
+import VerifierSessionCodeNotValidException from '../exceptions/verifierSessionCodeNotValid.exception';
 
 export interface Openid4vpData {
   clientId: string;
@@ -100,16 +101,13 @@ export default class PresentationService {
       throw new VerifierSessionIdNotExistsException(sessionId);
     const verifierSessionPrimitives = verifierSession.toPrimitives();
     if (
-      (code &&
-        verifierSessionPrimitives.code &&
-        verifierSessionPrimitives.code === code) ||
-      verifierSessionPrimitives.status === VerificationProcessStatus.VERIFIED
+      code &&
+      verifierSessionPrimitives.code &&
+      verifierSessionPrimitives.code !== code
     ) {
-      return this.buildGetPresentationResponse(verifierSessionPrimitives);
+      throw new VerifierSessionCodeNotValidException();
     }
-    if (verifierSessionPrimitives.status === VerificationProcessStatus.ERROR) {
-      return this.buildGetPresentationResponse(verifierSessionPrimitives);
-    }
+
     return this.buildGetPresentationResponse(verifierSessionPrimitives);
   }
 

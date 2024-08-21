@@ -7,6 +7,7 @@ import NotFoundException from '../excepcions/notFound.exception';
 import VerifierSessionIdNotExistsException from '../../contexts/presentation/exceptions/verifierSessionIdNotExists.exception';
 import VerifierSessionAlreadyVerifiedException from '../../contexts/presentation/exceptions/verifierSessionAlreadyVerified.exception';
 import DidMethodNotSupportedException from '../../contexts/shared/exceptions/didMethodNotSupported.exception';
+import VerifierSessionCodeNotValidException from '../../contexts/presentation/exceptions/verifierSessionCodeNotValid.exception';
 
 const ExceptionsHttpCodes = {
   [InvalidUuidFormatException.name]: HttpStatus.BAD_REQUEST,
@@ -17,6 +18,7 @@ const ExceptionsHttpCodes = {
   [VerifierSessionIdNotExistsException.name]: HttpStatus.BAD_REQUEST,
   [VerifierSessionAlreadyVerifiedException.name]: HttpStatus.BAD_REQUEST,
   [DidMethodNotSupportedException.name]: HttpStatus.BAD_REQUEST,
+  [VerifierSessionCodeNotValidException.name]: HttpStatus.BAD_REQUEST,
   unknown: HttpStatus.INTERNAL_SERVER_ERROR,
 };
 
