@@ -1,10 +1,34 @@
-import { Controller, Get, Post, Param, Body} from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
+import * as SignatureWrapperTypes from '@trace4eu/signature-wrapper';
+import { WalletFactory } from '@trace4eu/signature-wrapper';
+import { Controller, Get, Post, Param, Body, Headers, UseGuards} from '@nestjs/common';
+import { ApiBody, ApiOperation, ApiTags, ApiBearerAuth} from '@nestjs/swagger';
 import { AppService } from './app.service';
+import { AuthGuard } from './auth.guard'; // Auth guard for token authentication
 
 import { randomUUID, randomBytes } from "crypto";
+import fs from "fs";
+
 import { CredentialData } from './types/credential-data';
 import { UniversityDegreeCredentialConfig, LoginCredentialConfig } from './credential-configurations';
+
+
+var jwt = require('jsonwebtoken');
+
+const did = 'did:ebsi:zobuuYAHkAbRFCcqdcJfTgR'; //did of issuer
+const entityKey = [
+  {
+    alg: SignatureWrapperTypes.Algorithm.ES256K,
+    privateKeyHex:
+      'c4877a6d51c382b25a57684b5ac0a70398ab77b0eda0fcece0ca14ed00737e57',
+  },
+  {
+    alg: SignatureWrapperTypes.Algorithm.ES256,
+    privateKeyHex:
+      'fa50bbba9feade27ea61dd9973abfd7c04e72366b607558cd0b423b75d067a86',
+  },
+];
+
+const wallet = WalletFactory.createInstance(false, did, entityKey);
 
 // implements https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-3.5
 @ApiTags("OID4VCI (pre-authorized flow)")
@@ -15,6 +39,7 @@ export class AppController {
   // class variables that need to be set by issuer
   serverURL = "http://localhost:3000/"
   authServerURL = "todo" //TODO
+  privateKey = entityKey[0].privateKeyHex //fs.readFileSync("./certs/private.pem", "utf8");
 
   // other class variables
   offerMap = new Map();
@@ -126,4 +151,94 @@ export class AppController {
   }
 
   // post credential
+  @Post('credential')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiBody({
+    description: 'Generate a signed credential',
+    schema: {
+      properties: {
+        proof: {
+          type: 'object',
+          properties: {
+            jwt: { type: 'string' },
+          },
+        },
+      },
+    },
+  })
+  async credential(
+    @Headers('authorization') authHeader: string,
+    @Body() requestBody: any,
+  ) {
+    const token = authHeader.split(' ')[1];
+    const { credential_identifier } = jwt.decode(token) as any;
+
+    let decodedWithHeader;
+    let decodedHeaderSubjectDID;
+    if (requestBody.proof && requestBody.proof.jwt) {
+      decodedWithHeader = jwt.decode(requestBody.proof.jwt, { complete: true });
+      decodedHeaderSubjectDID = decodedWithHeader.payload.iss;
+    }
+
+    const credentialData = this.offerMap.get(credential_identifier);
+
+    let credentialSubject = credentialData
+      ? {
+          id: decodedHeaderSubjectDID,
+          ...credentialData.credentialSubject,
+          issuance_date: new Date(Math.floor(Date.now() / 1000) * 1000).toISOString(),
+        }
+      : {
+          id: decodedHeaderSubjectDID,
+          family_name: 'Doe',
+          given_name: 'John',
+          birth_date: '1990-01-01',
+          degree: 'Bachelor of Computer Science',
+          gpa: '1.2',
+          age_over_18: true,
+          issuance_date: new Date(Math.floor(Date.now() / 1000) * 1000).toISOString(),
+        };
+
+    const payload = {
+      iss: this.serverURL,
+      sub: decodedHeaderSubjectDID || '',
+      iat: Math.floor(Date.now() / 1000),
+      vc: {
+        credentialSubject: credentialSubject,
+        expirationDate: new Date((Math.floor(Date.now() / 1000) + 60 * 60) * 1000).toISOString(),
+        id: decodedHeaderSubjectDID,
+        issuanceDate: new Date(Math.floor(Date.now() / 1000) * 1000).toISOString(),
+        issued: new Date(Math.floor(Date.now() / 1000) * 1000).toISOString(),
+        issuer: 'did:ebsi:zobuuYAHkAbRFCcqdcJfTgR',
+        type: credentialData ? credentialData.type : ['UniversityDegreeCredential'],
+        '@context': [
+          'https://www.w3.org/2018/credentials/v1',
+          'https://europa.eu/2018/credentials/eudi/pid/v1',
+        ],
+        validFrom: new Date(Math.floor(Date.now() / 1000) * 1000).toISOString(),
+      },
+    };
+
+    const signOptions = {
+      algorithm: 'ES256',
+    };
+
+    const additionalHeaders = {
+      kid: 'did:ebsi:zobuuYAHkAbRFCcqdcJfTgR#key-1',
+      typ: 'jwt',
+    };
+
+    const idtoken = jwt.sign(payload, this.privateKey, {
+      ...signOptions,
+      header: additionalHeaders,
+    });
+
+    return {
+      format: 'jwt_vc',
+      credential: idtoken,
+      c_nonce: this.generateNonce(),
+      c_nonce_expires_in: 86400,
+    };
+  }
 }

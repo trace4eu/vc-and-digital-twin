@@ -25,7 +25,10 @@
     "@nestjs/core": "^10.0.0",
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/swagger": "^7.4.2",
+    "@trace4eu/signature-wrapper": "^0.0.13",
+    "fs": "^0.0.1-security",
     "jsonwebtoken": "^9.0.2",
+    "node-fetch": "^3.3.2",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1"
   },
