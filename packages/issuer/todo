@@ -1,0 +1,1 @@
+generalize code so that use cases can use this issuer service to include their won vc schemas that are automatically display though issuer metadata endpoint (vc schemas schould be added in folder "vc-schemas")
