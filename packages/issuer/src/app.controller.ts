@@ -12,10 +12,12 @@ import { UniversityDegreeCredentialConfig, LoginCredentialConfig } from './crede
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  // class variables
-  offerMap = new Map();
+  // class variables that need to be set by issuer
   serverURL = "http://localhost:3000/"
   authServerURL = "todo" //TODO
+
+  // other class variables
+  offerMap = new Map();
 
   //helper functions
   generateNonce(length=12): string{
@@ -107,7 +109,7 @@ export class AppController {
       },
       display: [
         {
-          name: "Issuer Name",
+          name: "Issuer Name", //TODO set by issuer depends on use case
           locale: "en-US",
           logo: {
             url: "https://8cb0-149-233-55-5.ngrok-free.app/_next/image?url=%2Ftrust-cv-logo.png&w=256&q=75",
@@ -116,14 +118,12 @@ export class AppController {
         },
       ],
       credential_configurations_supported: {
-        UniversityDegreeCredentialConfig,
-        LoginCredentialConfig
+        UniversityDegreeCredentialConfig, //TODO set by issuer depends on use case
+        LoginCredentialConfig //TODO set by issuer depends on use case
       },
     };
     return(metadata);
   }
 
-  // post token reqeust
-
-  // post credential request
+  // post credential
 }
