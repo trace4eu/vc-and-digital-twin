@@ -71,3 +71,19 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](LICENSE).
+
+## How to issue VC using pre-authorization flow
+1. POST: `issuer/offer`
+  - input: none
+  - returns: credential offer id
+2. GET: `issuer/credential-offer/:id`
+  - input: credential offer id as param `id`
+  - returns: issuer_state, pre-auht-code
+3. GET: `auth/authorize`
+  - input: as query (see swagger???)
+  - returns: redirect to: `${redirect_uri}?state=${state}&client_id=${client_id}&redirect_uri=${redirectURI}&response_type=${responseType}&response_mode=${responseMode}&scope=openid&nonce=${nonce}&request=${requestJar}`
+4. POST: `auth/direct_post`????
+  - input:
+  - returns: redirect to: `http://localhost:8080?code=${authorizationCode}&state=${state}` --> what is run on 8080 (issuer is on 7000 port and auth is on 7001)
+4. POST: `auth/token`????
+5. POST: `issuer/credential`????

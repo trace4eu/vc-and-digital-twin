@@ -1,1 +1,2 @@
-generalize code so that use cases can use this issuer service to include their won vc schemas that are automatically display though issuer metadata endpoint (vc schemas schould be added in folder "vc-schemas")
+get public key in hex of examplary issuer: https://hub.ebsi.eu/apis/pilot/did-registry/v5/get-identifier and add the public key in auth.controller
+generalize code so that use cases can use this issuer service to include their own vc schemas that are automatically display though issuer metadata endpoint (vc schemas schould be added in folder "vc-schemas")

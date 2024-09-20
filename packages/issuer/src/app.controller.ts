@@ -3,18 +3,20 @@ import { WalletFactory } from '@trace4eu/signature-wrapper';
 import { Controller, Get, Post, Param, Body, Headers, UseGuards} from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiTags, ApiBearerAuth} from '@nestjs/swagger';
 import { AppService } from './app.service';
+
+// middleware for authentication before
 import { AuthGuard } from './auth.guard'; // Auth guard for token authentication
 
 import { randomUUID, randomBytes } from "crypto";
 import fs from "fs";
 
-import { CredentialData } from './types/credential-data';
+import { CredentialData } from './swagger-api-schemas/issuer-schemas';
 import { UniversityDegreeCredentialConfig, LoginCredentialConfig } from './credential-configurations';
 
 
 var jwt = require('jsonwebtoken');
 
-const did = 'did:ebsi:zobuuYAHkAbRFCcqdcJfTgR'; //did of issuer
+const did = 'did:ebsi:zobuuYAHkAbRFCcqdcJfTgR'; //did of issuer (also listed in EBSI TIR: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zobuuYAHkAbRFCcqdcJfTgR)
 const entityKey = [
   {
     alg: SignatureWrapperTypes.Algorithm.ES256K,
@@ -32,14 +34,14 @@ const wallet = WalletFactory.createInstance(false, did, entityKey);
 
 // implements https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-3.5
 @ApiTags("OID4VCI (pre-authorized flow)")
-@Controller()
+@Controller("issuer")
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
   // class variables that need to be set by issuer
-  serverURL = "http://localhost:3000/"
-  authServerURL = "todo" //TODO
-  privateKey = entityKey[0].privateKeyHex //fs.readFileSync("./certs/private.pem", "utf8");
+  serverURL = "http://localhost:3000/issuer"
+  authServerURL = "http://localhost:3000/auth"
+  privateKey = entityKey[1].privateKeyHex //fs.readFileSync("./certs/private.pem", "utf8");
 
   // other class variables
   offerMap = new Map();
