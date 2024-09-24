@@ -1,2 +1,3 @@
-get public key in hex of examplary issuer: https://hub.ebsi.eu/apis/pilot/did-registry/v5/get-identifier and add the public key in auth.controller
-generalize code so that use cases can use this issuer service to include their own vc schemas that are automatically display though issuer metadata endpoint (vc schemas schould be added in folder "vc-schemas")
+integrate wallet signature wrapper: get public key in hex of examplary issuer: https://hub.ebsi.eu/apis/pilot/did-registry/v5/get-identifier and add the public key in auth.controller (signature-wrapper must be exgtended for this)
+issue one login or resume credential and generalize the code to work with any credenital subject --> generalize code so that use cases can use this issuer service to include their own vc schemas that are automatically display though issuer metadata endpoint (vc schemas schould be added in folder "vc-schemas")
+code refactoring so that issuer and verifier service have same folder structure

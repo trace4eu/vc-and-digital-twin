@@ -72,6 +72,9 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 
 Nest is [MIT licensed](LICENSE).
 
+## How to set up issuer service
+1. ... TODO
+
 ## How to issue VC using pre-authorization flow
 1. POST: `issuer/offer`
   - input: none
@@ -85,5 +88,10 @@ Nest is [MIT licensed](LICENSE).
 4. POST: `auth/direct_post`????
   - input:
   - returns: redirect to: `http://localhost:8080?code=${authorizationCode}&state=${state}` --> what is run on 8080 (issuer is on 7000 port and auth is on 7001)
-4. POST: `auth/token`????
-5. POST: `issuer/credential`????
+4. POST: `auth/token`???? TODO
+5. POST: `issuer/credential`???? TODO
+
+## To discuss:
+- authorization server: how did the working group of the keycloack issuer service handled it: two seperate backends for auth and issuer or joint but speerated by the path?
+- how to integrate trace4eu signature wrapper? --> Prio
+- how to generalize CredenitalSubject schema? --> instructions for trace4eu use cases are needed so that they can simply define their VCs structure (e.g. in a dedicated folder such as credential-configurations.ts)
