@@ -1,3 +1,4 @@
 integrate wallet signature wrapper: get public key in hex of examplary issuer: https://hub.ebsi.eu/apis/pilot/did-registry/v5/get-identifier and add the public key in auth.controller (signature-wrapper must be exgtended for this)
+one credenital configuration based on official ebsi data model: https://hub.ebsi.eu/vc-framework/data-models/inventory --> this is the data model for educational credentials: https://api-pilot.ebsi.eu/trusted-schemas-registry/v2/schemas/zEmFZquJtANNz7XNE46thRi1E2cAfpQiXVLSBdDgLyfGP
 issue one login or resume credential and generalize the code to work with any credenital subject --> generalize code so that use cases can use this issuer service to include their own vc schemas that are automatically display though issuer metadata endpoint (vc schemas schould be added in folder "vc-schemas")
-code refactoring so that issuer and verifier service have same folder structure
+code refactoring so that issuer and verifier service have same folder structure: split auth and issuer service into two servers; make endpoints into dto (follow style of verifier nest.js service done by pablo)

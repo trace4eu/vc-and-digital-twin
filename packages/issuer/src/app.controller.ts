@@ -231,14 +231,14 @@ export class AppController {
       typ: 'jwt',
     };
 
-    const idtoken = jwt.sign(payload, this.privateKey, {
+    const idtoken = jwt.sign(payload, this.privateKey, { //TODO: rename to vc or smth
       ...signOptions,
       header: additionalHeaders,
     });
 
     return {
       format: 'jwt_vc',
-      credential: idtoken,
+      credential: idtoken, //TODO: rename
       c_nonce: this.generateNonce(),
       c_nonce_expires_in: 86400,
     };
