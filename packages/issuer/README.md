@@ -72,24 +72,28 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 
 Nest is [MIT licensed](LICENSE).
 
-## How to set up issuer service
+## How to set up default issuer and authentication server
 1. ... TODO
 
 ## How to issue VC using pre-authorization flow
-1. POST: `issuer/offer`
-  - input: none
-  - returns: credential offer id
-2. GET: `issuer/credential-offer/:id`
-  - input: credential offer id as param `id`
-  - returns: issuer_state, pre-auht-code
-3. GET: `auth/authorize`
-  - input: as query (see swagger???)
-  - returns: redirect to: `${redirect_uri}?state=${state}&client_id=${client_id}&redirect_uri=${redirectURI}&response_type=${responseType}&response_mode=${responseMode}&scope=openid&nonce=${nonce}&request=${requestJar}`
-4. POST: `auth/direct_post`????
-  - input:
-  - returns: redirect to: `http://localhost:8080?code=${authorizationCode}&state=${state}` --> what is run on 8080 (issuer is on 7000 port and auth is on 7001)
-4. POST: `auth/token`???? TODO
-5. POST: `issuer/credential`???? TODO
+1. Customize issuer and authentication server to use case or keep default (see [here](#how-to-set-up-default-issuer-and-authentication-server))
+2. Define use case specific credential configurations in `credential-configuration.ts`
+3. Run issuer and authentication server
+4. Issue VC using pre-authorized code flow
+  1. POST: `issuer/offer`
+    - input: none
+    - returns: credential offer id
+  2. GET: `issuer/credential-offer/:id`
+    - input: credential offer id as param `id`
+    - returns: issuer_state, pre-auht-code
+  3. GET: `auth/authorize`
+    - input: as query (see swagger???)
+    - returns: redirect to: `${redirect_uri}?state=${state}&client_id=${client_id}&redirect_uri=${redirectURI}&response_type=${responseType}&response_mode=${responseMode}&scope=openid&nonce=${nonce}&request=${requestJar}`
+  4. POST: `auth/direct_post`????
+    - input:
+    - returns: redirect to: `http://localhost:8080?code=${authorizationCode}&state=${state}` --> what is run on 8080 (issuer is on 7000 port and auth is on 7001)
+  4. POST: `auth/token`???? TODO
+  5. POST: `issuer/credential`???? TODO
 
 ## To discuss:
 - authorization server: how did the working group of the keycloack issuer service handled it: two seperate backends for auth and issuer or joint but speerated by the path?
