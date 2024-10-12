@@ -35,7 +35,7 @@ const generateAccessToken = async (sub: string, credential_identifier: string, s
       credential_identifier: string;
     } = {
       iss: serverUrl, //TODO should be loaded in from global variable
-      sub: sub,
+      sub: sub, // Subject is the client_id
       aud: serverUrl,
       exp: Math.floor(Date.now() / 1000) + 60 * 60, // Expires in 1 hour
       iat: Math.floor(Date.now() / 1000),
@@ -399,5 +399,64 @@ export class AppController {
     };
 
     return config;
+  }
+
+  @Post('temp-verifyAccessToken')
+  @ApiBody({
+    description: 'Verify an access token',
+    schema: { properties: { token: { type: 'string' } } },
+  })
+  async tempVerifyAccessToken(@Body() body: { token: string }): Promise<{ message: string }> {
+    const token = body.token;
+
+    if (!token) {
+      throw new HttpException('Token is required', HttpStatus.BAD_REQUEST);
+    }
+
+    try {
+      // Verify the JWT using wallet.verifyJwt
+      const decoded = await wallet.verifyJwt(token, 'ES256'); 
+
+      console.log(decoded)
+
+      // If the token is valid, return a success message
+      return { message: 'Token is valid' };
+
+    } catch (err) {
+      // Handle invalid token or any other error
+      throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
+    }
+  }
+
+  @Post('temp-token')
+  @ApiBody({
+    description: 'Generate an access token',
+    schema: { properties: { client_id: { type: 'string' }, pre_auhtorized_code: { type: 'string' }, user_pin: { type: 'string' } } },
+  })
+  async tempToken(@Body() body: { client_id: string, pre_auhtorized_code: string, user_pin: string }) {
+    try{
+      const { client_id, pre_auhtorized_code, user_pin } = body;
+      if (user_pin !== '1234') {
+        throw new HttpException('Invalid pin', HttpStatus.BAD_REQUEST);
+      }
+
+      //note: credential_identifier is the pre_authorized_code
+      const generatedAccessToken = await generateAccessToken(client_id, pre_auhtorized_code, this.serverURL);
+      
+      if(generatedAccessToken === undefined){
+        throw new HttpException('Error generating access token', HttpStatus.INTERNAL_SERVER_ERROR);
+      }else{
+        this.accessTokens.set(client_id, generatedAccessToken);
+        return {
+          access_token: generatedAccessToken,
+          token_type: 'bearer',
+          expires_in: 86400,
+          c_nonce: this.generateNonce(16),
+          c_nonce_expires_in: 86400,
+        };
+      }
+    }catch(e){
+      console.log(e);
+    }
   }
 }

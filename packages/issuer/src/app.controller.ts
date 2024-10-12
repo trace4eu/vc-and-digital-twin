@@ -121,7 +121,7 @@ export class AppController {
   @UseGuards(AuthGuard)
   @ApiBearerAuth() //auth token contains the credenital_identifier = uiid to find vc offer in mapping
   @ApiBody({
-    description: 'Generate a signed credential',
+    description: 'Generate a signed credential. Use `https://jwt.io/` to create proof object with jwt containing did of holder (= jwt.payload.iss).',
     schema: {
       properties: {
         proof: {
