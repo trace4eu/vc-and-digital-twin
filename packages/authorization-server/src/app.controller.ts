@@ -100,7 +100,7 @@ const buildIdToken = async (aud: string, serverUrl: string): Promise<string | un
 
 // implements https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-3.5
 @ApiTags("Authorization")
-@Controller("auth")
+@Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 

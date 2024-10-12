@@ -137,14 +137,12 @@ export class AppController {
     @Headers('authorization') authHeader: string,
     @Body() requestBody: any,
   ) {
-    console.log(authHeader)
     const token = authHeader.split(' ')[1];
 
     const result = await wallet.verifyJwt(token, 'ES256');
-    const uuid = result.payload //TODO: discuss with pablo to make JWTVerifyResult type more usable:https://github.com/trace4eu/ebsi-services-wrapper/blob/main/signature-wrapper/src/types/types.ts
-    const decodedHeaderSubjectDID = result.protectedHeader.kid;
-    
-    console.log("uiid", uuid)
+    const load = result.payload as Record<string, any>; //TODO: discuss with pablo to make JWTVerifyResult type more usable:https://github.com/trace4eu/ebsi-services-wrapper/blob/main/signature-wrapper/src/types/types.ts
+    const credential_identifier = load.credential_identifier 
+    const decodedHeaderSubjectDID = requestBody.proof.jwt ? jwt.decode(requestBody.proof.jwt).iss : null; //TODO: check if jwt is valid and has iss field
 
     /*
     const { credential_identifier } = jwt.decode(token) as any;
@@ -157,8 +155,7 @@ export class AppController {
     }
 
     const credentialData = this.offerMap.get(credential_identifier);*/
-    console.log("access mapping")
-    const credentialData = this.offerMap.get(uuid);
+    const credentialData = this.offerMap.get(credential_identifier);
 
     let credentialSubject = credentialData
       ? {

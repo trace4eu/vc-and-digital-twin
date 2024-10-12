@@ -5,12 +5,13 @@ import { Reflector } from '@nestjs/core';
 export class AuthGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
+  authServerURL = 'http://localhost:3001'
+
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const response = context.switchToHttp().getResponse();
     
     const authHeader = request.headers['authorization'];
-    console.log('authHeader:', request.headers);
 
     if (!authHeader) {
       throw new HttpException('Authorization header is missing', HttpStatus.UNAUTHORIZED);
@@ -22,6 +23,18 @@ export class AuthGuard implements CanActivate {
     }
 
     try {
+
+      const verificationResponse = await fetch(`${this.authServerURL}/verifyAccessToken`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ token: token }),
+      });
+
+      if (!verificationResponse.ok) {
+        throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
+      }
 
       /*
       const authServerURL = 'http://localhost:3000/'; // Replace with actual auth server URL
