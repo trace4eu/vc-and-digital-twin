@@ -20,6 +20,46 @@ const entityKey = [
   },
 ];
 
+const wallet = SignatureWrapperTypes.WalletFactory.createInstance(false, did, entityKey);
+
+const generateAccessToken = async (sub: string, credential_identifier: string, serverUrl: string): Promise<string | undefined> => {
+  try{
+    // Define payload type
+    const payload: {
+      iss: string;
+      sub: string;
+      aud: string;
+      exp: number;
+      iat: number;
+      scope: string;
+      credential_identifier: string;
+    } = {
+      iss: serverUrl, //should be loaded in from global variable
+      sub: sub,
+      aud: serverUrl,
+      exp: Math.floor(Date.now() / 1000) + 60 * 60, // Expires in 1 hour
+      iat: Math.floor(Date.now() / 1000),
+      scope: "openid",
+      credential_identifier: credential_identifier,
+    };
+
+    // Sign the JWT
+    const token: string = await wallet.signJwt(
+      Buffer.from(JSON.stringify(payload)),
+      { alg: SignatureWrapperTypes.Algorithm.ES256 },
+      {
+        typ: 'JWT',
+        alg: 'ES256',
+      }
+    );
+    
+    return token;
+  }catch(e){
+    console.log(e);
+    return undefined
+  }
+}
+
 
 // implements https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-3.5
 @ApiTags("Authorization")
