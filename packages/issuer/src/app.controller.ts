@@ -34,7 +34,7 @@ const wallet = WalletFactory.createInstance(false, did, entityKey);
 
 // implements https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-3.5
 @ApiTags("OID4VCI (pre-authorized flow)")
-@Controller("issuer")
+@Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
@@ -51,31 +51,23 @@ export class AppController {
     return(randomBytes(length).toString("hex"))
   }
 
-  @Get()
-  getHello(): string {
-    return this.appService.getHello();
-  }
-
+  // creater credential offer
+  // called by holder
   @Post("offer")
   @ApiOperation({description: "Insert in body credetnial data, e.g. : {credentialSubject: {...}, type: ...}"})
   postCredentialOffer(@Body() credentialData : CredentialData){
     const uuid = randomUUID();
     const issuer_state = randomUUID();
     const pre_authorized_code = this.generateNonce(32);
-    /*
-    credentialData: {
-      credentialSubject: {
-        .... subject data 
-      },
-      type: ["LoginCredential" || "UniversityDegreeCredential"]
-    }
-    */
+
     this.offerMap.set(uuid, { issuer_state, pre_authorized_code, credentialData });
 
     let credentialOffer = `openid-credential-offer://?credential_offer_uri=${this.serverURL}/credential-offer/${uuid}`;
     return(credentialOffer);
   }
 
+  // get credential offer
+  // called by issuer
   @Get("credential-offer/:id")
   getCredentialOffer(@Param("id") id : string): any {
 
@@ -123,39 +115,11 @@ export class AppController {
     return(response);
   }
 
-  @Get(".well-known/openid-credential-issuer")
-  getCredentialIssuerMetadata(){
-    const metadata = {
-      credential_issuer: `${this.serverURL}`,
-      authorization_server: `${this.authServerURL}`,
-      credential_endpoint: `${this.serverURL}/credential`,
-      credential_response_encryption: {
-        alg_values_supported: ["ECDH-ES"],
-        enc_values_supported: ["A128GCM"],
-        encryption_required: false,
-      },
-      display: [
-        {
-          name: "Issuer Name", //TODO set by issuer depends on use case
-          locale: "en-US",
-          logo: {
-            url: "https://8cb0-149-233-55-5.ngrok-free.app/_next/image?url=%2Ftrust-cv-logo.png&w=256&q=75",
-            //url: "https://logowik.com/content/uploads/images/technischen-universitat-berlin1469.jpg",
-          },
-        },
-      ],
-      credential_configurations_supported: {
-        UniversityDegreeCredentialConfig, //TODO set by issuer depends on use case
-        LoginCredentialConfig //TODO set by issuer depends on use case
-      },
-    };
-    return(metadata);
-  }
-
   // post credential
+  // called by holder
   @Post('credential')
   @UseGuards(AuthGuard)
-  @ApiBearerAuth()
+  @ApiBearerAuth() //auth token contains the credenital_identifier = uiid to find vc offer in mapping
   @ApiBody({
     description: 'Generate a signed credential',
     schema: {
@@ -163,7 +127,7 @@ export class AppController {
         proof: {
           type: 'object',
           properties: {
-            jwt: { type: 'string' },
+            jwt: { type: 'string' }, //jwt contains did of subject that will hold to be issued VC (found by jwt.payload.iss)
           },
         },
       },
@@ -173,7 +137,16 @@ export class AppController {
     @Headers('authorization') authHeader: string,
     @Body() requestBody: any,
   ) {
+    console.log(authHeader)
     const token = authHeader.split(' ')[1];
+
+    const result = await wallet.verifyJwt(token, 'ES256');
+    const uuid = result.payload //TODO: discuss with pablo to make JWTVerifyResult type more usable:https://github.com/trace4eu/ebsi-services-wrapper/blob/main/signature-wrapper/src/types/types.ts
+    const decodedHeaderSubjectDID = result.protectedHeader.kid;
+    
+    console.log("uiid", uuid)
+
+    /*
     const { credential_identifier } = jwt.decode(token) as any;
 
     let decodedWithHeader;
@@ -183,7 +156,9 @@ export class AppController {
       decodedHeaderSubjectDID = decodedWithHeader.payload.iss;
     }
 
-    const credentialData = this.offerMap.get(credential_identifier);
+    const credentialData = this.offerMap.get(credential_identifier);*/
+    console.log("access mapping")
+    const credentialData = this.offerMap.get(uuid);
 
     let credentialSubject = credentialData
       ? {
@@ -212,8 +187,8 @@ export class AppController {
         id: decodedHeaderSubjectDID,
         issuanceDate: new Date(Math.floor(Date.now() / 1000) * 1000).toISOString(),
         issued: new Date(Math.floor(Date.now() / 1000) * 1000).toISOString(),
-        issuer: 'did:ebsi:zobuuYAHkAbRFCcqdcJfTgR',
-        type: credentialData ? credentialData.type : ['UniversityDegreeCredential'],
+        issuer: 'did:ebsi:zobuuYAHkAbRFCcqdcJfTgR', //TODO: load in as global variable
+        type: credentialData.type,
         '@context': [
           'https://www.w3.org/2018/credentials/v1',
           'https://europa.eu/2018/credentials/eudi/pid/v1',
@@ -222,6 +197,16 @@ export class AppController {
       },
     };
 
+    const credentialJwt = await wallet.signJwt(
+      Buffer.from(JSON.stringify(payload)),
+      { alg: SignatureWrapperTypes.Algorithm.ES256 },
+      {
+        typ: 'JWT', //TODO: should be typ: 'jwt' at least it is like this in tub code?????
+        alg: 'ES256',
+        kid: 'did:ebsi:zobuuYAHkAbRFCcqdcJfTgR#key-1',
+      },
+    );
+    /*
     const signOptions = {
       algorithm: 'ES256',
     };
@@ -234,13 +219,42 @@ export class AppController {
     const idtoken = jwt.sign(payload, this.privateKey, { //TODO: rename to vc or smth
       ...signOptions,
       header: additionalHeaders,
-    });
+    });*/
 
     return {
       format: 'jwt_vc',
-      credential: idtoken, //TODO: rename
+      credential: credentialJwt,
       c_nonce: this.generateNonce(),
       c_nonce_expires_in: 86400,
     };
+  }
+
+  @Get(".well-known/openid-credential-issuer")
+  getCredentialIssuerMetadata(){
+    const metadata = {
+      credential_issuer: `${this.serverURL}`,
+      authorization_server: `${this.authServerURL}`,
+      credential_endpoint: `${this.serverURL}/credential`,
+      credential_response_encryption: {
+        alg_values_supported: ["ECDH-ES"],
+        enc_values_supported: ["A128GCM"],
+        encryption_required: false,
+      },
+      display: [
+        {
+          name: "Issuer Name", //TODO set by issuer depends on use case
+          locale: "en-US",
+          logo: {
+            url: "https://8cb0-149-233-55-5.ngrok-free.app/_next/image?url=%2Ftrust-cv-logo.png&w=256&q=75",
+            //url: "https://logowik.com/content/uploads/images/technischen-universitat-berlin1469.jpg",
+          },
+        },
+      ],
+      credential_configurations_supported: {
+        UniversityDegreeCredentialConfig, //TODO set by issuer depends on use case
+        LoginCredentialConfig //TODO set by issuer depends on use case
+      },
+    };
+    return(metadata);
   }
 }

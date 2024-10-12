@@ -1,16 +1,19 @@
 import { NestFactory } from '@nestjs/core';
-import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
-import type { ApiConfig } from '../config/configuration';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  const configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
-  const apiUrlPrefix = configService.get<string>('apiUrlPrefix');
-  const port = configService.get<number>('apiPort');
+  const config = new DocumentBuilder()
+    .setTitle('Authentication Server')
+    .setDescription('With this API VC can be issued usin the pre-authorized code flow.')
+    .setVersion('1.0')
+    .addTag('Authorization')
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, document);
 
-  app.setGlobalPrefix(apiUrlPrefix);
-  await app.listen(port);
+  await app.listen(3001);
 }
 bootstrap();

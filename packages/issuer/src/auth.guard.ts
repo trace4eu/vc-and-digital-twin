@@ -8,7 +8,9 @@ export class AuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const response = context.switchToHttp().getResponse();
+    
     const authHeader = request.headers['authorization'];
+    console.log('authHeader:', request.headers);
 
     if (!authHeader) {
       throw new HttpException('Authorization header is missing', HttpStatus.UNAUTHORIZED);
@@ -20,6 +22,8 @@ export class AuthGuard implements CanActivate {
     }
 
     try {
+
+      /*
       const authServerURL = 'http://localhost:3000/'; // Replace with actual auth server URL
 
       const verificationResponse = await fetch(`${authServerURL}/verifyAccessToken`, {
@@ -36,6 +40,7 @@ export class AuthGuard implements CanActivate {
 
       const result = await verificationResponse.text();
       console.log('Token verification response:', result);
+      */
 
       // If the token is verified successfully, allow the request
       return true;
