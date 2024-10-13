@@ -16,7 +16,8 @@ import { UniversityDegreeCredentialConfig, LoginCredentialConfig } from './crede
 
 var jwt = require('jsonwebtoken');
 
-const did = 'did:ebsi:zobuuYAHkAbRFCcqdcJfTgR'; //did of issuer (also listed in EBSI TIR: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zobuuYAHkAbRFCcqdcJfTgR)
+//did of issuer (also listed in EBSI TIR: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zobuuYAHkAbRFCcqdcJfTgR)
+const did = 'did:ebsi:zobuuYAHkAbRFCcqdcJfTgR'; //TODO: load in as global variable
 const entityKey = [
   {
     alg: SignatureWrapperTypes.Algorithm.ES256K,
@@ -39,9 +40,8 @@ export class AppController {
   constructor(private readonly appService: AppService) {}
 
   // class variables that need to be set by issuer
-  serverURL = "http://localhost:3000/issuer"
-  authServerURL = "http://localhost:3000/auth"
-  privateKey = entityKey[1].privateKeyHex //fs.readFileSync("./certs/private.pem", "utf8");
+  serverURL = "http://localhost:3000"
+  authServerURL = "http://localhost:3001"
 
   // other class variables
   offerMap = new Map();
@@ -83,8 +83,6 @@ export class AppController {
         credentialData,
       } = entry);
 
-      console.log(credentialData);
-
       if (iss_state) {
         this.offerMap.set(iss_state, credentialData);
       }
@@ -93,8 +91,6 @@ export class AppController {
         this.offerMap.set(pre_auth_code, credentialData);
       }
     }
-
-    console.log(iss_state, pre_auth_code);
 
     const response = {
       credential_issuer: `${this.serverURL}`,
@@ -135,7 +131,7 @@ export class AppController {
   })
   async credential(
     @Headers('authorization') authHeader: string,
-    @Body() requestBody: any,
+    @Body() requestBody: any, //TODO: define requestBody type
   ) {
     const token = authHeader.split(' ')[1];
 
@@ -144,17 +140,6 @@ export class AppController {
     const credential_identifier = load.credential_identifier 
     const decodedHeaderSubjectDID = requestBody.proof.jwt ? jwt.decode(requestBody.proof.jwt).iss : null; //TODO: check if jwt is valid and has iss field
 
-    /*
-    const { credential_identifier } = jwt.decode(token) as any;
-
-    let decodedWithHeader;
-    let decodedHeaderSubjectDID;
-    if (requestBody.proof && requestBody.proof.jwt) {
-      decodedWithHeader = jwt.decode(requestBody.proof.jwt, { complete: true });
-      decodedHeaderSubjectDID = decodedWithHeader.payload.iss;
-    }
-
-    const credentialData = this.offerMap.get(credential_identifier);*/
     const credentialData = this.offerMap.get(credential_identifier);
 
     let credentialSubject = credentialData
@@ -184,7 +169,7 @@ export class AppController {
         id: decodedHeaderSubjectDID,
         issuanceDate: new Date(Math.floor(Date.now() / 1000) * 1000).toISOString(),
         issued: new Date(Math.floor(Date.now() / 1000) * 1000).toISOString(),
-        issuer: 'did:ebsi:zobuuYAHkAbRFCcqdcJfTgR', //TODO: load in as global variable
+        issuer: did,
         type: credentialData.type,
         '@context': [
           'https://www.w3.org/2018/credentials/v1',
@@ -200,23 +185,9 @@ export class AppController {
       {
         typ: 'JWT', //TODO: should be typ: 'jwt' at least it is like this in tub code?????
         alg: 'ES256',
-        kid: 'did:ebsi:zobuuYAHkAbRFCcqdcJfTgR#key-1',
+        kid: `${did}#key-1`,
       },
     );
-    /*
-    const signOptions = {
-      algorithm: 'ES256',
-    };
-
-    const additionalHeaders = {
-      kid: 'did:ebsi:zobuuYAHkAbRFCcqdcJfTgR#key-1',
-      typ: 'jwt',
-    };
-
-    const idtoken = jwt.sign(payload, this.privateKey, { //TODO: rename to vc or smth
-      ...signOptions,
-      header: additionalHeaders,
-    });*/
 
     return {
       format: 'jwt_vc',
@@ -242,8 +213,7 @@ export class AppController {
           name: "Issuer Name", //TODO set by issuer depends on use case
           locale: "en-US",
           logo: {
-            url: "https://8cb0-149-233-55-5.ngrok-free.app/_next/image?url=%2Ftrust-cv-logo.png&w=256&q=75",
-            //url: "https://logowik.com/content/uploads/images/technischen-universitat-berlin1469.jpg",
+            url: "https://logowik.com/content/uploads/images/technischen-universitat-berlin1469.jpg"
           },
         },
       ],
