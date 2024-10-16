@@ -1,73 +1,126 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+<img src="https://trace4eu.eu/wp-content/uploads/2023/09/Logo_TRACE4EU_horizontal_positive_RGB.png" width="250" alt="TRACE4EU Logo">
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+# VERIFIER API
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Table of contents
 
-## Description
+* [Overview](#overview)
+* [Presentation Flows](#presentation-flows)
+* [How to build and run](#how-to-build-and-run)
+* [Endpoints](#endpoints)
+* [Configuration](#configuration)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Overview
 
-## Installation
+This a Web application (Backend Restful service) that acts as a Verifier/RP trusted end-point.
+The Verifier API is based on [OIDC4VP draft version 20](https://openid.net/specs/openid-4-verifiable-presentations-1_0-20.html). The ID Token is also supported according to [SIOPv2](https://openid.github.io/SIOPv2/openid-connect-self-issued-v2-wg-draft.html).  
+The following operations are supported:
+- `Initialize a presentation`, where Verifier may define whether it wants to request a SIOP (id_token) or OpenID4VP (vp_token).
+- `Get Request Object` according JWT Secured Authorization Request.
+- `Get Presentation Definition` according to OpenId4VP in case of using presentation_definition_uri.
+- `Direct Post` according to OpenID4VP direct_post
+- `Get Wallet response`, where Verifier receives depending on the request an id_token, vp_token, or an error.
+An Open API v3 specification of these operations is available
 
-```bash
-$ npm install
+**Please note that**
+- All APIs should be exposed over HTTPS.
+- These endpoints: `Initialize a presentation` and `Get Wallet response`, needs to protected to allow only authorized access. These two endpoints should only be called internally by the Verifier. The wallet is not going to call those endpoints so that public access is not needed for those. 
+
+This library has been used for validating the presentations (https://www.npmjs.com/package/@trace4eu/verifiable-presentation). This source code of this library is [here](../verifiable-presentation).
+
+## Presentation flows
+
+Regarding the `Response Mode`, it is only supported the mode `direct_post`. It is based on this diagram:   
+https://openid.net/specs/openid-4-verifiable-presentations-1_0-20.html#name-response-mode-direct_post-2
+
+It means that two flows have been implemented depending on whether the `redirectUri` has been informed when initializing the presentation (see [Endpoints](#endpoints)).  
+Not informing the redirectUri could make sense in a cross device flow, and informing it in a same device flow. For that reason we present the two possible scenarios:
+
+### Same device
+```mermaid
+sequenceDiagram    
+    participant UA as User Agent
+    participant W as Wallet
+    participant V as Verifier(Use case component)
+    participant VE as Verifier Endpoint (Verifier Umbrella Architecture component)
+    UA->>V: Trigger presentation 
+    
+    V->>+VE: Initiate transaction
+    VE-->>-V: Authorization request as request_url
+    
+    V->>UA: Render request as deep link
+    UA->>W: Trigger wallet and pass request
+    
+    W->>+VE: Get authorization request via request_uri 
+    VE-->>-W: authorization_request
+    
+    W->>W: Parse authorization request
+    
+    W->>+VE: Get presentation definition 
+    VE-->>-W: presentation_definition
+    
+    W->>W: Prepare response     
+    
+    W->>+VE: Post vp_token response 
+    VE->>VE: Validate response and prepare response_code
+    VE-->>-W: Return redirect_uri with response_code
+    
+    W->>UA: Refresh user agent to follow redirect_uri
+    UA->>V: Follow redirect_uri passing response_code
+    
+    V->>+VE: Get wallet response passing response_code 
+    VE->>VE: Validate response_code matches wallet response
+    VE-->>-V: Return wallet response
+    
+    V->>UA: Render wallet response 
 ```
 
-## Running the app
 
-```bash
-# development
-$ npm run start
+### Cross device
+```mermaid
+sequenceDiagram    
+    participant UA as User Agent
+    participant W as Wallet
+    participant V as Verifier(Use case component)
+    participant VE as Verifier Endpoint (Verifier Umbrella Architecture component)
+    UA->>V: Trigger presentation 
+    
+    V->>+VE:  Initiate transaction
+    VE-->>-V: Authorization request as request_url
+    
+    V->>UA: Render request as QR Code
 
-# watch mode
-$ npm run start:dev
+    loop
+    V->>+VE: Get wallet response
+    VE-->>-V: Return wallet response
+    Note over V,VE: Verifier starts polling Verifier Endpoint for Wallet Response
+    end
 
-# production mode
-$ npm run start:prod
+    UA->>W: Scan QR Code, trigger wallet, and pass request
+    
+    W->>+VE: Get authorization request via request_uri 
+    VE-->>-W: authorization_request
+    
+    W->>W: Parse authorization request
+    
+    W->>+VE: Get presentation definition 
+    VE-->>-W: presentation_definition
+    
+    W->>W: Prepare response     
+    
+    W->>+VE: Post vp_token response 
+    VE->>VE: Validate response
+
+    loop
+    V->>+VE: Get wallet response
+    VE-->>-V: Return wallet response
+    end
+    
+    V->>UA: Render wallet response
 ```
 
-## Test
+## How to build and run
 
-```bash
-# unit tests
-$ npm run test
+## Endpoints
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).
+## Configuration

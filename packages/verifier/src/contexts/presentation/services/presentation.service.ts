@@ -44,7 +44,7 @@ export default class PresentationService {
       'openid4vpRequestProtocol',
     );
     this.clientMetadata = {
-      authorization_endpoint: 'openid:',
+      authorization_endpoint: 'openid4vp:',
       response_types_supported: ['vp_token', 'id_token'],
       vp_formats_supported: {
         jwt_vp: {
