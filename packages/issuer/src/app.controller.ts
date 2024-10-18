@@ -56,14 +56,22 @@ export class AppController {
   @Post("offer")
   @ApiOperation({description: "Insert in body credetnial data, e.g. : {credentialSubject: {...}, type: ...}"})
   postCredentialOffer(@Body() credentialData : CredentialData){
+    /*
     const uuid = randomUUID();
     const issuer_state = randomUUID();
     const pre_authorized_code = this.generateNonce(32);
 
     this.offerMap.set(uuid, { issuer_state, pre_authorized_code, credentialData });
+    */
 
-    let credentialOffer = `openid-credential-offer://?credential_offer_uri=${this.serverURL}/credential-offer/${uuid}`;
-    return(credentialOffer);
+    // create credential offer
+    const {uuid, issuer_state, pre_authorized_code} = this.appService.createCredentialOffer();
+
+    // store credential offer in map
+    this.offerMap.set(uuid, {issuer_state, pre_authorized_code, credentialData});
+
+    // return credential offer url
+    return `openid-credential-offer://?credential_offer_uri=${this.serverURL}/credential-offer/${uuid}`;
   }
 
   // get credential offer
@@ -71,11 +79,13 @@ export class AppController {
   @Get("credential-offer/:id")
   getCredentialOffer(@Param("id") id : string): any {
 
+    // get credential offer from map
     const entry = this.offerMap.get(id);
     let iss_state;
     let pre_auth_code;
     let credentialData;
 
+    // 
     if (entry) {
       ({
         issuer_state: iss_state,
@@ -92,6 +102,7 @@ export class AppController {
       }
     }
 
+    // return credential offer
     const response = {
       credential_issuer: `${this.serverURL}`,
       credentials: credentialData
