@@ -96,6 +96,4 @@ Nest is [MIT licensed](LICENSE).
   5. POST: `issuer/credential`???? TODO
 
 ## To discuss:
-- authorization server: how did the working group of the keycloack issuer service handled it: two seperate backends for auth and issuer or joint but speerated by the path?
-- how to integrate trace4eu signature wrapper? --> Prio
 - how to generalize CredenitalSubject schema? --> instructions for trace4eu use cases are needed so that they can simply define their VCs structure (e.g. in a dedicated folder such as credential-configurations.ts)
