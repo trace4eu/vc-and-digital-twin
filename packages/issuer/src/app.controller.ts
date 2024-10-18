@@ -56,13 +56,6 @@ export class AppController {
   @Post("offer")
   @ApiOperation({description: "Insert in body credetnial data, e.g. : {credentialSubject: {...}, type: ...}"})
   postCredentialOffer(@Body() credentialData : CredentialData){
-    /*
-    const uuid = randomUUID();
-    const issuer_state = randomUUID();
-    const pre_authorized_code = this.generateNonce(32);
-
-    this.offerMap.set(uuid, { issuer_state, pre_authorized_code, credentialData });
-    */
 
     // create credential offer
     const {uuid, issuer_state, pre_authorized_code} = this.appService.createCredentialOffer();
@@ -85,7 +78,7 @@ export class AppController {
     let pre_auth_code;
     let credentialData;
 
-    // 
+    // check if offer exists and create new offer entry based on chosen flow: authorization or pre-authorization
     if (entry) {
       ({
         issuer_state: iss_state,
@@ -93,16 +86,16 @@ export class AppController {
         credentialData,
       } = entry);
 
-      if (iss_state) {
+      if (iss_state) { // for authorization code flow
         this.offerMap.set(iss_state, credentialData);
       }
 
-      if (pre_auth_code) {
+      if (pre_auth_code) { // for pre-authorized code flow
         this.offerMap.set(pre_auth_code, credentialData);
       }
     }
 
-    // return credential offer
+    // return credential offer information
     const response = {
       credential_issuer: `${this.serverURL}`,
       credentials: credentialData
@@ -151,7 +144,7 @@ export class AppController {
     const credential_identifier = load.credential_identifier 
     const decodedHeaderSubjectDID = requestBody.proof.jwt ? jwt.decode(requestBody.proof.jwt).iss : null; //TODO: check if jwt is valid and has iss field
 
-    const credentialData = this.offerMap.get(credential_identifier);
+    const credentialData = this.offerMap.get(credential_identifier); //TODO: should be found by issuer_state or pre_authorization_code depending on authorization or pre-authorization code flow???
 
     let credentialSubject = credentialData
       ? {
