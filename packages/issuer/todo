@@ -1,5 +1,3 @@
-post credential offer endpoint shoiuld return the link as base64 qr code (use same function as pablo)
-post credential offer endpoint should have input for user pin
 get credential offer endpoint should show schema in swagger UI --> use @ApiResponse({type: OfferResponse}) [same for post credential endpoint]
 optimize memory storage to redis for offerMap and authcodeMap etc.
 

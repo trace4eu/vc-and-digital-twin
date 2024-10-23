@@ -1,7 +1,8 @@
 import * as SignatureWrapperTypes from '@trace4eu/signature-wrapper';
 import { WalletFactory } from '@trace4eu/signature-wrapper';
+import * as qrcode from 'qrcode';
 import { Controller, Get, Post, Param, Body, Headers, UseGuards} from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiTags, ApiBearerAuth} from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiTags, ApiBearerAuth, ApiResponse} from '@nestjs/swagger';
 import { AppService } from './app.service';
 
 // middleware for authentication before
@@ -10,10 +11,14 @@ import { AuthGuard } from './auth.guard'; // Auth guard for token authentication
 import { randomUUID, randomBytes } from "crypto";
 import fs from "fs";
 
-import { CredentialData } from './swagger-api-schemas/issuer-schemas';
+import { CredentialData, CredentialOffer } from './swagger-api-schemas/issuer-schemas';
 import { UniversityDegreeCredentialConfig, LoginCredentialConfig } from './credential-configurations';
 
 
+
+const buildB64QrCode = async function (content: string): Promise<string> {
+  return qrcode.toDataURL(content);
+};
 var jwt = require('jsonwebtoken');
 
 //did of issuer (also listed in EBSI TIR: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zobuuYAHkAbRFCcqdcJfTgR)
@@ -55,7 +60,8 @@ export class AppController {
   // called by holder
   @Post("offer")
   @ApiOperation({description: "Insert in body credetnial data, e.g. : {credentialSubject: {...}, type: ...}"})
-  postCredentialOffer(@Body() credentialData : CredentialData){
+  @ApiResponse({ status: 201, description: 'Credential offer creation successfull', type: CredentialOffer})
+  async postCredentialOffer(@Body() credentialData : CredentialData){
 
     // create credential offer
     const {uuid, issuer_state, pre_authorized_code} = this.appService.createCredentialOffer();
@@ -63,8 +69,16 @@ export class AppController {
     // store credential offer in map
     this.offerMap.set(uuid, {issuer_state, pre_authorized_code, credentialData});
 
-    // return credential offer url
-    return `openid-credential-offer://?credential_offer_uri=${this.serverURL}/credential-offer/${uuid}`;
+    // format credential offer
+    const rawCredentialOffer = `openid-credential-offer://?credential_offer_uri=${this.serverURL}/credential-offer/${uuid}`;
+    const qrBase64 = await buildB64QrCode(rawCredentialOffer);
+    
+    //return credential offer
+    const response = {
+      rawCredentialOffer: rawCredentialOffer,
+      qrBase64: qrBase64
+    }
+    return response;
   }
 
   // get credential offer
