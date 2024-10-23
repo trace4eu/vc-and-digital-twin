@@ -27,3 +27,17 @@ export class CredentialOffer {
   @ApiProperty()
   qrBase64: string;
 }
+
+export class CredentialResponse {
+  @ApiProperty()
+  format: string;
+
+  @ApiProperty()
+  credential: any;
+
+  @ApiProperty()
+  c_nonce: string;
+
+  @ApiProperty()
+  c_nonce_expires_in: number;
+}

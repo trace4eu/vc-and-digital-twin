@@ -1,4 +1,3 @@
-get credential offer endpoint should show schema in swagger UI --> use @ApiResponse({type: OfferResponse}) [same for post credential endpoint]
 optimize memory storage to redis for offerMap and authcodeMap etc.
 
 one credenital configuration based on official ebsi data model: https://hub.ebsi.eu/vc-framework/data-models/inventory --> this is the data model for educational credentials: https://api-pilot.ebsi.eu/trusted-schemas-registry/v2/schemas/zEmFZquJtANNz7XNE46thRi1E2cAfpQiXVLSBdDgLyfGP

@@ -11,7 +11,7 @@ import { AuthGuard } from './auth.guard'; // Auth guard for token authentication
 import { randomUUID, randomBytes } from "crypto";
 import fs from "fs";
 
-import { CredentialData, CredentialOffer } from './swagger-api-schemas/issuer-schemas';
+import { CredentialData, CredentialOffer, CredentialResponse } from './swagger-api-schemas/issuer-schemas';
 import { UniversityDegreeCredentialConfig, LoginCredentialConfig } from './credential-configurations';
 
 
@@ -147,6 +147,7 @@ export class AppController {
       },
     },
   })
+  @ApiResponse({ status: 201, description: 'Credential issuance successfull', type: CredentialResponse})
   async credential(
     @Headers('authorization') authHeader: string,
     @Body() requestBody: any, //TODO: define requestBody type
@@ -207,12 +208,13 @@ export class AppController {
       },
     );
 
-    return {
+    const response : CredentialResponse = {
       format: 'jwt_vc',
       credential: credentialJwt,
       c_nonce: this.generateNonce(),
       c_nonce_expires_in: 86400,
-    };
+    }
+    return response;
   }
 
   @Get(".well-known/openid-credential-issuer")
