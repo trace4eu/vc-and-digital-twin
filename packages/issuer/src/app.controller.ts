@@ -44,7 +44,7 @@ export class AppController {
   authServerURL = "http://localhost:3001"
 
   // other class variables
-  offerMap = new Map();
+  offerMap = new Map(); // TODO: change to redis done by pablo
 
   //helper functions
   generateNonce(length=12): string{
@@ -107,7 +107,7 @@ export class AppController {
         },
         "urn:ietf:params:oauth:grant-type:pre-authorized_code": {
           "pre-authorized_code": pre_auth_code ?? randomUUID(),
-          user_pin_required: true,
+          user_pin_required: true, //TODO: this needs to be adapted by use case
         },
       },
     };
