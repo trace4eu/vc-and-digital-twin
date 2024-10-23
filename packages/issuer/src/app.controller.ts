@@ -11,7 +11,7 @@ import { AuthGuard } from './auth.guard'; // Auth guard for token authentication
 import { randomUUID, randomBytes } from "crypto";
 import fs from "fs";
 
-import { CredentialData, CredentialOffer, CredentialResponse } from './swagger-api-schemas/issuer-schemas';
+import { CredentialData, CredentialOfferResponse, CredentialIssuanceResponse, CredentialOfferInformationResponse } from './swagger-api-schemas/issuer-schemas';
 import { UniversityDegreeCredentialConfig, LoginCredentialConfig } from './credential-configurations';
 
 
@@ -60,7 +60,7 @@ export class AppController {
   // called by holder
   @Post("offer")
   @ApiOperation({description: "Insert in body credetnial data, e.g. : {credentialSubject: {...}, type: ...}"})
-  @ApiResponse({ status: 201, description: 'Credential offer creation successfull', type: CredentialOffer})
+  @ApiResponse({ status: 201, description: 'Credential offer creation successfull', type: CredentialOfferResponse})
   async postCredentialOffer(@Body() credentialData : CredentialData){
 
     // create credential offer
@@ -74,7 +74,7 @@ export class AppController {
     const qrBase64 = await buildB64QrCode(rawCredentialOffer);
     
     //return credential offer
-    const response = {
+    const response : CredentialOfferResponse = {
       rawCredentialOffer: rawCredentialOffer,
       qrBase64: qrBase64
     }
@@ -84,6 +84,7 @@ export class AppController {
   // get credential offer
   // called by issuer
   @Get("credential-offer/:id")
+  @ApiResponse({ status: 201, description: 'Credential offer information retrieval successfull', type: CredentialOfferInformationResponse})
   getCredentialOffer(@Param("id") id : string): any {
 
     // get credential offer from map
@@ -110,7 +111,7 @@ export class AppController {
     }
 
     // return credential offer information
-    const response = {
+    const response : CredentialOfferInformationResponse = {
       credential_issuer: `${this.serverURL}`,
       credentials: credentialData
         ? credentialData.type
@@ -118,7 +119,7 @@ export class AppController {
       grants: {
         authorization_code: {
           issuer_state: iss_state ?? randomUUID(),
-        },
+        }, //TODO: delete as we only implement pre-aith code flow --> can we delete this?
         "urn:ietf:params:oauth:grant-type:pre-authorized_code": {
           "pre-authorized_code": pre_auth_code ?? randomUUID(),
           user_pin_required: true, //TODO: this needs to be adapted by use case
@@ -147,7 +148,7 @@ export class AppController {
       },
     },
   })
-  @ApiResponse({ status: 201, description: 'Credential issuance successfull', type: CredentialResponse})
+  @ApiResponse({ status: 201, description: 'Credential issuance successfull', type: CredentialIssuanceResponse})
   async credential(
     @Headers('authorization') authHeader: string,
     @Body() requestBody: any, //TODO: define requestBody type
@@ -208,7 +209,7 @@ export class AppController {
       },
     );
 
-    const response : CredentialResponse = {
+    const response : CredentialIssuanceResponse = {
       format: 'jwt_vc',
       credential: credentialJwt,
       c_nonce: this.generateNonce(),

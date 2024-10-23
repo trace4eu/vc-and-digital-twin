@@ -1,4 +1,6 @@
-optimize memory storage to redis for offerMap and authcodeMap etc.
+get credential Offer by id: openid-credential-offer://credential_offer_uri= --> add swagger document response
+post /token with optional user_pin --> https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0-10.html#section-6.1
+optimize memory storage to redis for offerMap and authcodeMap etc. (no prio)
 
 one credenital configuration based on official ebsi data model: https://hub.ebsi.eu/vc-framework/data-models/inventory --> this is the data model for educational credentials: https://api-pilot.ebsi.eu/trusted-schemas-registry/v2/schemas/zEmFZquJtANNz7XNE46thRi1E2cAfpQiXVLSBdDgLyfGP
 issue one login or resume credential and generalize the code to work with any credenital subject --> generalize code so that use cases can use this issuer service to include their own vc schemas that are automatically display though issuer metadata endpoint (vc schemas schould be added in folder "vc-schemas")

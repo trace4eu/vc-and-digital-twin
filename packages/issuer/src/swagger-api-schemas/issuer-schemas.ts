@@ -20,7 +20,7 @@ export class CredentialData {
   user_pin: string;
 }
 
-export class CredentialOffer {
+export class CredentialOfferResponse {
   @ApiProperty()
   rawCredentialOffer: string;
 
@@ -28,7 +28,7 @@ export class CredentialOffer {
   qrBase64: string;
 }
 
-export class CredentialResponse {
+export class CredentialIssuanceResponse {
   @ApiProperty()
   format: string;
 
@@ -40,4 +40,23 @@ export class CredentialResponse {
 
   @ApiProperty()
   c_nonce_expires_in: number;
+}
+
+export class CredentialOfferInformationResponse {
+  @ApiProperty()
+  credential_issuer: string;
+
+  @ApiProperty()
+  credentials: any;
+
+  @ApiProperty()
+  grants: {
+    authorization_code: {
+      issuer_state: string;
+    },
+    "urn:ietf:params:oauth:grant-type:pre-authorized_code": {
+      "pre-authorized_code": string;
+      user_pin_required: boolean;
+    }
+  };
 }
