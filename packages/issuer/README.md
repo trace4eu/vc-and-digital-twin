@@ -95,5 +95,13 @@ Nest is [MIT licensed](LICENSE).
   4. POST: `auth/token`???? TODO
   5. POST: `issuer/credential`???? TODO
 
+## How does OID4VCI with pre-authorization code flow work?
+1. user triggers issuer to call `offer` endpoint, which return credential offer URI
+2. credential offer URI is scanned by user via its wallet
+3. wallet calls two endpoints of issuer service: `credential-offer/:id` and `.well-known/openid-credential-issuer`
+4. wallet uses information from `.well-known/openid-credential-issuer` endpoint to start interaction with authorization service, i. e. wallet calls two endpoints of authorization service: `authorize` and `.well-known/openid-configuration`
+5. wallet calls `token` endpoint of authorization server to get access token following pre-authorization code flow
+6. wallet calls `credential` endpoint of issuer server to obtain the VCs as defined in `offer` endpoint in the beginning of this process description (after successful input of user_pin by user the wallet gets the VCs)
+
 ## To discuss:
 - how to generalize CredenitalSubject schema? --> instructions for trace4eu use cases are needed so that they can simply define their VCs structure (e.g. in a dedicated folder such as credential-configurations.ts)
