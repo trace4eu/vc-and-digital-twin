@@ -2,7 +2,7 @@ import * as SignatureWrapperTypes from '@trace4eu/signature-wrapper';
 import { Controller, Get, Post, Param, Body, HttpException, HttpStatus, Redirect, Query} from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { AppService } from './app.service';
-import { randomUUID, randomBytes, createHash} from "crypto";
+import { randomUUID, randomBytes, createHash, createPrivateKey, createPublicKey} from "crypto";
 import { PostDirectPostBody, PostTokenBody } from './swagger-api-schemas/auth-schemas';
 var jwt = require('jsonwebtoken');
 
@@ -75,7 +75,6 @@ export class AppController {
 
   // Simulated in-memory stores for tokens and codes
   accessTokens = new Map<string, string>();
-  authorizationCodes = new Map<string, any>();
 
   //helper functions
   generateNonce(length=12): string{
@@ -155,4 +154,65 @@ export class AppController {
       console.log(e);
     }
   }
+
+  @Get("/.well-known/openid-configuration")
+  getOpenIdConfiguration() {
+    const config = {
+      issuer: `${this.serverURL}`,
+      authorization_endpoint: `${this.authServerURL}/authorize`,
+      token_endpoint: `${this.authServerURL}/token`,
+      jwks_uri: `${this.authServerURL}/jwks`,
+      scopes_supported: ["openid"],
+      response_types_supported: ["vp_token", "id_token"], //TODO: erase the one that is not performed
+      response_modes_supported: ["query"],
+      grant_types_supported: ["pre-authorized_code"],
+      subject_types_supported: ["public"],
+      id_token_signing_alg_values_supported: ["ES256"],
+      request_object_signing_alg_values_supported: ["ES256"],
+      request_parameter_supported: true,
+      request_uri_parameter_supported: true,
+      token_endpoint_auth_methods_supported: ["private_key_jwt"],
+      request_authentication_methods_supported: {
+        authorization_endpoint: ["request_object"],
+      },
+      vp_formats_supported: {
+        jwt_vp: {
+          alg_values_supported: ["ES256"],
+        },
+        jwt_vc: {
+          alg_values_supported: ["ES256"],
+        },
+      },
+      subject_syntax_types_supported: [
+        "did:key:jwk_jcs-pub",
+      ],
+      id_token_types_supported: [
+        "subject_signed_id_token",
+        "attester_signed_id_token",
+      ],
+    };
+
+    return config;
+  }
+
+  //TODO: convert public key of did:ebsi into jwk
+  /*
+  @Get("/jwks")
+  getJwks() {
+    return {
+      keys: [
+        {
+          ...this.publicKeyAsJwk,
+          kid: `${did}#sig-key`,
+          use: "sig",
+        },
+        {
+          ...this.publicKeyAsJwk,
+          kid: `${did}#authentication-key`,
+          use: "keyAgreement",
+        },
+      ],
+    };
+  }
+  */
 }
