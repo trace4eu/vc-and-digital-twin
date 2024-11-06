@@ -1,0 +1,42 @@
+name: Run Tests
+run-name: Run by ${{ github.actor }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      test-type:
+        type: choice
+        description: Test type
+        required: true
+        default: e2e
+        options:
+          - e2e
+          - integration
+          - unit
+
+jobs:
+  test-verifier:
+    name: Test the Verifier Component
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Set up env variables
+        run: |
+          echo "${{ secrets.SECRETS_BASE64 }}" | base64 --decode > packages/verifier/.env
+
+      - name: Install dependencies
+        working-directory: packages/verifier
+        run: |
+          npm install
+
+      - name: Run Verifier Tests
+        working-directory: packages/verifier
+        run: |
+          npm run test:${{ github.event.inputs.test-type }}
