@@ -195,24 +195,23 @@ export class AppController {
     return config;
   }
 
-  //TODO: convert public key of did:ebsi into jwk
-  /*
+
   @Get("/jwks")
   getJwks() {
+    const jwks = wallet.getPublicJwks().keys;
     return {
       keys: [
         {
-          ...this.publicKeyAsJwk,
+          ...jwks[1], //second jwks key is always used due to ES256 signing of tokens and VCs
           kid: `${did}#sig-key`,
           use: "sig",
         },
         {
-          ...this.publicKeyAsJwk,
+          ...jwks[1],
           kid: `${did}#authentication-key`,
           use: "keyAgreement",
         },
       ],
     };
   }
-  */
 }
