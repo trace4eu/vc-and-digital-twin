@@ -96,7 +96,7 @@ Nest is [MIT licensed](LICENSE).
   5. POST: `issuer/credential`???? TODO
 
 ## How does OID4VCI with pre-authorization code flow work?
-1. user triggers issuer to call `offer` endpoint, which return credential offer URI
+1. user triggers issuer to call `offer` endpoint, which returns credential offer URI
 2. credential offer URI is scanned by user via its wallet
 3. wallet calls two endpoints of issuer service: `credential-offer/:id` and `.well-known/openid-credential-issuer`
 4. wallet uses information from `.well-known/openid-credential-issuer` endpoint to start interaction with authorization service, i. e. wallet calls two endpoints of authorization service: `authorize` and `.well-known/openid-configuration`

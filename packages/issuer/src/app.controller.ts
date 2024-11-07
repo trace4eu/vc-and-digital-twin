@@ -64,10 +64,10 @@ export class AppController {
   async postCredentialOffer(@Body() credentialData : CredentialData){
 
     // create credential offer
-    const {uuid, issuer_state, pre_authorized_code} = this.appService.createCredentialOffer();
+    const {uuid, pre_authorized_code} = this.appService.createCredentialOffer();
 
     // store credential offer in map
-    this.offerMap.set(uuid, {issuer_state, pre_authorized_code, credentialData});
+    this.offerMap.set(uuid, {pre_authorized_code, credentialData});
 
     // format credential offer
     const rawCredentialOffer = `openid-credential-offer://?credential_offer_uri=${this.serverURL}/credential-offer/${uuid}`;
@@ -89,21 +89,15 @@ export class AppController {
 
     // get credential offer from map
     const entry = this.offerMap.get(id);
-    let iss_state;
     let pre_auth_code;
     let credentialData;
 
     // check if offer exists and create new offer entry based on chosen flow: authorization or pre-authorization
     if (entry) {
       ({
-        issuer_state: iss_state,
         pre_authorized_code: pre_auth_code,
         credentialData,
       } = entry);
-
-      if (iss_state) { // for authorization code flow
-        this.offerMap.set(iss_state, credentialData);
-      }
 
       if (pre_auth_code) { // for pre-authorized code flow
         this.offerMap.set(pre_auth_code, credentialData);
@@ -117,9 +111,6 @@ export class AppController {
         ? credentialData.type
         : ["UniversityDegreeCredential"],
       grants: {
-        authorization_code: {
-          issuer_state: iss_state ?? randomUUID(),
-        }, //TODO: delete as we only implement pre-aith code flow --> can we delete this?
         "urn:ietf:params:oauth:grant-type:pre-authorized_code": {
           "pre-authorized_code": pre_auth_code ?? randomUUID(),
           user_pin_required: true, //TODO: this needs to be adapted by use case
@@ -203,7 +194,7 @@ export class AppController {
       Buffer.from(JSON.stringify(payload)),
       { alg: SignatureWrapperTypes.Algorithm.ES256 },
       {
-        typ: 'JWT', //TODO: should be typ: 'jwt' at least it is like this in tub code?????
+        typ: 'JWT',
         alg: 'ES256',
         kid: `${did}#key-1`,
       },

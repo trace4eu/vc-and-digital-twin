@@ -51,9 +51,6 @@ export class CredentialOfferInformationResponse {
 
   @ApiProperty()
   grants: {
-    authorization_code: {
-      issuer_state: string;
-    },
     "urn:ietf:params:oauth:grant-type:pre-authorized_code": {
       "pre-authorized_code": string;
       user_pin_required: boolean;
