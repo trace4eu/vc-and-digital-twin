@@ -128,10 +128,11 @@ export class AppController {
     description: 'Generate an access token',
     schema: { properties: { client_id: { type: 'string' }, pre_auhtorized_code: { type: 'string' }, user_pin: { type: 'string' } } },
   })
-  async token(@Body() body: { client_id: string, pre_auhtorized_code: string, user_pin: string }) {
+  async token(@Body() body: { client_id: string, pre_auhtorized_code: string, user_pin?: string }) {
     try{
       const { client_id, pre_auhtorized_code, user_pin } = body;
-      if (user_pin !== '1234') {
+
+      if(user_pin !== undefined && user_pin !== '1234') { //TODO by use case: implemnt own needed routine
         throw new HttpException('Invalid pin', HttpStatus.BAD_REQUEST);
       }
 

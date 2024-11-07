@@ -109,11 +109,11 @@ export class AppController {
       credential_issuer: `${this.serverURL}`,
       credentials: credentialData
         ? credentialData.type
-        : ["UniversityDegreeCredential"],
+        : ["UniversityDegreeCredential"], //TODO: this needs to be adapted by use case
       grants: {
         "urn:ietf:params:oauth:grant-type:pre-authorized_code": {
           "pre-authorized_code": pre_auth_code ?? randomUUID(),
-          user_pin_required: true, //TODO: this needs to be adapted by use case
+          user_pin_required: true, 
         },
       },
     };
