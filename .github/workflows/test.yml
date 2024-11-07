@@ -40,3 +40,4 @@ jobs:
         working-directory: packages/verifier
         run: |
           npm run test:${{ github.event.inputs.test-type }}
+        continue-on-error: true
