@@ -119,7 +119,7 @@ export class AppController {
 
     } catch (err) {
       // Handle invalid token or any other error
-      throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
+      throw new HttpException('Invalid token due to error', HttpStatus.UNAUTHORIZED);
     }
   }
 
@@ -128,16 +128,16 @@ export class AppController {
     description: 'Generate an access token',
     schema: { properties: { client_id: { type: 'string' }, pre_auhtorized_code: { type: 'string' }, user_pin: { type: 'string' } } },
   })
-  async token(@Body() body: { client_id: string, pre_auhtorized_code: string, user_pin?: string }) {
+  async token(@Body() body: { client_id: string, pre_authorized_code: string, user_pin?: string }) {
     try{
-      const { client_id, pre_auhtorized_code, user_pin } = body;
+      const { client_id, pre_authorized_code, user_pin } = body;
 
       if(user_pin !== undefined && user_pin !== '1234') { //TODO by use case: implemnt own needed routine
         throw new HttpException('Invalid pin', HttpStatus.BAD_REQUEST);
       }
 
       //note: credential_identifier is the pre_authorized_code
-      const generatedAccessToken = await generateAccessToken(client_id, pre_auhtorized_code, this.serverURL);
+      const generatedAccessToken = await generateAccessToken(client_id, pre_authorized_code, this.serverURL);
       
       if(generatedAccessToken === undefined){
         throw new HttpException('Error generating access token', HttpStatus.INTERNAL_SERVER_ERROR);
