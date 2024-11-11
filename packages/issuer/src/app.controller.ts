@@ -190,7 +190,7 @@ export class AppController {
       },
     };
 
-    const credentialJwt = await wallet.signJwt(
+    const credentialJwt = await wallet.signJwt( //TODO check if necessarey to change this code so that one uses the signature wrapper function: https://github.com/trace4eu/ebsi-services-wrapper/blob/main/signature-wrapper/README.md#signvc
       Buffer.from(JSON.stringify(payload)),
       { alg: SignatureWrapperTypes.Algorithm.ES256 },
       {
