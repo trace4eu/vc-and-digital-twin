@@ -3,9 +3,9 @@
 # vc-and-digital-twin
 
 ## Issuer
-For VC Issuance following OID4VCI with pre-authorized code flow:
-- authorization server runs on port: 3001, issuer on port 3000, and client on port 8080
-- depending on the use case, authorization server must be adapted. Based on use case specific changes of authorization server, the auth guard in issuer which calles ``verifyTokenAccess`` endpoint must be adapted.
+Go [here](./packages/issuer) for VC Issuance following OID4VCI with pre-authorized code flow:
+- authorization server runs on port: 3001 and issuer on port 3000
+- depending on the use case, [authorization server](./packages/authorization-server) must be adapted, which possibly requires adaption of the [auth guard](./packages/issuer/src/auth.guard.ts) in the issuer service since it calls ``verifyTokenAccess`` endpoint of the authorization server.
 
 ## Verifier
 Go [here](./packages/verifier)
