@@ -1,0 +1,232 @@
+{
+	"info": {
+		"_postman_id": "9c09a344-3915-4262-8d7c-12dc9b5b89ea",
+		"name": "Trace4EU - vc component",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "1123264"
+	},
+	"item": [
+		{
+			"name": "Initiate a presentation",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"function getQueryParam(uri, paramName) {",
+							"    var decodedUri = decodeURIComponent(uri);",
+							"    var uriParts = decodedUri.split('?');",
+							"    if (uriParts.length > 1) {",
+							"        var queryParams = uriParts[1].split('&');",
+							"        for (var i = 0; i < queryParams.length; i++) {",
+							"            var param = queryParams[i].split('=');",
+							"            if (param[0] === paramName) {",
+							"                return param[1];",
+							"            }",
+							"        }",
+							"    }",
+							"    return null;",
+							"}",
+							"var template = `",
+							"<style type=\"text/css\">",
+							"    .tftable {font-size:14px;color:#333333;width:100%;border-width: 1px;border-color: #87ceeb;border-collapse: collapse;}",
+							"    .tftable th {font-size:18px;background-color:#87ceeb;border-width: 1px;padding: 8px;border-style: solid;border-color: #87ceeb;text-align:left;}",
+							"    .tftable tr {background-color:#ffffff;}",
+							"    .tftable td {font-size:14px;border-width: 1px;padding: 8px;border-style: solid;border-color: #87ceeb;}",
+							"    .tftable tr:hover {background-color:#e0ffff;}",
+							"</style>",
+							"",
+							"<table class=\"tftable\" border=\"1\">",
+							"    <tr>",
+							"        <th>QR Base64</th>",
+							"        <th>Raw Presentation Offer</th>",
+							"    </tr>",
+							"    <tr>",
+							"        <td><img src=\"{{response.qrBase64}}\" alt=\"QR Code\"></td>",
+							"        <td>{{response.rawOpenid4vp}}</td>",
+							"    </tr>",
+							"</table>",
+							"`;",
+							"",
+							"function constructVisualizerPayload() {",
+							"    return {response: pm.response.json()}",
+							"}",
+							"",
+							"pm.visualizer.set(template, constructVisualizerPayload());"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n   \"redirectUri\": \"openid://\",\n   \"responseType\":\"vp_token\",\n   \"presentationDefinition\":{\n      \"id\":\"32f54163-7166-48f1-93d8-ff217bdb0653\",\n      \"input_descriptors\":[\n         {\n            \"id\":\"123456\",\n            \"format\":{\n               \"jwt_vc\":{\n                  \"alg\":[\n                     \"ES256\"\n                  ]\n               },\n               \"jwt_vp\":{\n                  \"alg\":[\n                     \"ES256\"\n                  ]\n               }\n            },\n            \"constraints\":{\n               \"fields\":[\n                  {\n                     \"path\":[\n                        \"$.vc.type\"\n                     ],\n                     \"filter\":{\n                        \"type\":\"array\",\n                        \"contains\":{\n                           \"const\":\"TestTypeSchema\"\n                        }\n                     }\n                  }\n               ]\n            }\n         }\n      ]\n   },\n   \"nonce\":\"nonce\",\n   \"responseMode\":\"direct_post\",\n   \"presentationDefinitionMode\":\"by_reference\",\n   \"redirectUri\": \"openid://\"\n   }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{public_host}}/presentations",
+					"host": [
+						"{{public_host}}"
+					],
+					"path": [
+						"presentations"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Request Object",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{public_host}}/request.jwt/:sessionId",
+					"host": [
+						"{{public_host}}"
+					],
+					"path": [
+						"request.jwt",
+						":sessionId"
+					],
+					"variable": [
+						{
+							"key": "sessionId",
+							"value": "6de3dda4-906a-4178-b651-f24b06fb90d7"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Presentation Definition",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{public_host}}/presentation-definitions/:sessionId",
+					"host": [
+						"{{public_host}}"
+					],
+					"path": [
+						"presentation-definitions",
+						":sessionId"
+					],
+					"variable": [
+						{
+							"key": "sessionId",
+							"value": "6de3dda4-906a-4178-b651-f24b06fb90d7"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Wallet response",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"function getQueryParam(uri, paramName) {",
+							"    var decodedUri = decodeURIComponent(uri);",
+							"    var uriParts = decodedUri.split('?');",
+							"    if (uriParts.length > 1) {",
+							"        var queryParams = uriParts[1].split('&');",
+							"        for (var i = 0; i < queryParams.length; i++) {",
+							"            var param = queryParams[i].split('=');",
+							"            if (param[0] === paramName) {",
+							"                return param[1];",
+							"            }",
+							"        }",
+							"    }",
+							"    return null;",
+							"}",
+							"var template = `",
+							"<style type=\"text/css\">",
+							"    .tftable {font-size:14px;color:#333333;width:100%;border-width: 1px;border-color: #87ceeb;border-collapse: collapse;}",
+							"    .tftable th {font-size:18px;background-color:#87ceeb;border-width: 1px;padding: 8px;border-style: solid;border-color: #87ceeb;text-align:left;}",
+							"    .tftable tr {background-color:#ffffff;}",
+							"    .tftable td {font-size:14px;border-width: 1px;padding: 8px;border-style: solid;border-color: #87ceeb;}",
+							"    .tftable tr:hover {background-color:#e0ffff;}",
+							"</style>",
+							"",
+							"<table class=\"tftable\" border=\"1\">",
+							"    <tr>",
+							"        <th>QR Base64</th>",
+							"        <th>Raw Presentation Offer</th>",
+							"    </tr>",
+							"    <tr>",
+							"        <td><img src=\"{{response.qrBase64}}\" alt=\"QR Code\"></td>",
+							"        <td>{{response.rawOpenid4vp}}</td>",
+							"    </tr>",
+							"</table>",
+							"`;",
+							"",
+							"function constructVisualizerPayload() {",
+							"    return {response: pm.response.json()}",
+							"}",
+							"",
+							"pm.visualizer.set(template, constructVisualizerPayload());"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n   \"responseType\":\"vp_token\",\n   \"presentationDefinition\":{\n      \"id\":\"32f54163-7166-48f1-93d8-ff217bdb0653\",\n      \"input_descriptors\":[\n         {\n            \"id\":\"urn:did:123456\",\n            \"format\":{\n               \"jwt_vc\":{\n                  \"alg\":[\n                     \"ES256\"\n                  ]\n               },\n               \"jwt_vp\":{\n                  \"alg\":[\n                     \"ES256\"\n                  ]\n               }\n            },\n            \"constraints\":{\n               \"fields\":[\n                  {\n                     \"path\":[\n                        \"$.vc.type\"\n                     ],\n                     \"filter\":{\n                        \"type\":\"array\",\n                        \"contains\":{\n                           \"const\":\"TestTypeSchema\"\n                        }\n                     }\n                  }\n               ]\n            }\n         }\n      ]\n   },\n   \"nonce\":\"nonce\",\n   \"responseMode\":\"direct_post\",\n   \"presentationDefinitionMode\":\"by_reference\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{public_host}}/presentations/:sessionId",
+					"host": [
+						"{{public_host}}"
+					],
+					"path": [
+						"presentations",
+						":sessionId"
+					],
+					"variable": [
+						{
+							"key": "sessionId",
+							"value": "368f891b-12dd-451c-87a7-9acc81dae546"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

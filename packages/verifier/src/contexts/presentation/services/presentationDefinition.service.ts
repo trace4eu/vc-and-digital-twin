@@ -11,7 +11,7 @@ export default class PresentationDefinitionService {
 
   async execute(sessionId: string) {
     const verifierSession = await this.verifierSessionRepository.getByKey(
-      new SessionId(sessionId),
+      new SessionId(sessionId).toString(),
     );
     if (!verifierSession)
       throw new VerifierSessionIdNotExistsException(sessionId);

@@ -95,7 +95,7 @@ export default class PresentationService {
     code?: string,
   ): Promise<GetPresentationResponseDto> {
     const verifierSession = await this.verifierSessionRepository.getByKey(
-      new SessionId(sessionId),
+      new SessionId(sessionId).toString(),
     );
     if (!verifierSession)
       throw new VerifierSessionIdNotExistsException(sessionId);

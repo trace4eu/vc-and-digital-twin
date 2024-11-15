@@ -25,7 +25,7 @@ export default class IdTokenService {
 
   async execute(sessionId: string, idToken: string): Promise<string> {
     const verifierSession = await this.verifierSessionRepository.getByKey(
-      new SessionId(sessionId),
+      new SessionId(sessionId).toString(),
     );
     if (
       !verifierSession ||

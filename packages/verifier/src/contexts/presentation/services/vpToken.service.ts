@@ -126,7 +126,7 @@ export default class VpTokenService {
 
   private async getSessionData(sessionId: string) {
     return await this.verifierSessionRepository.getByKey(
-      new SessionId(sessionId),
+      new SessionId(sessionId).toString(),
     );
   }
 

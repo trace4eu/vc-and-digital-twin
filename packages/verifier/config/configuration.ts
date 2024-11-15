@@ -49,7 +49,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
   validationSchema: Joi.object({
     CORS_ORIGINS: Joi.string().empty().required().default('*'),
     API_PORT: Joi.string().pattern(/^\d+$/).default('3000'),
-    API_BASE_PATH: Joi.string(),
+    API_BASE_PATH: Joi.string().default('/apis/v1'),
     AUTHORIZATION_SERVER_PUBLIC_KEY: Joi.string().empty().required(),
     AUTHORIZATION_SERVER_PRIVATE_KEY: Joi.string().empty().required(),
     REDIS_HOST: Joi.string().empty().required(),

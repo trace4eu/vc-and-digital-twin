@@ -35,6 +35,7 @@ export class VerifierController {
       const url = `${result.redirectUri}?error=invalid_request&error_description=${result.message}`;
       return {
         url: result.state ? url + `&state=${result.state}` : url,
+        statusCode: HttpStatus.FOUND,
       };
     }
     if (!result.code) {
