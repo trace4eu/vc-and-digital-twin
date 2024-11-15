@@ -213,6 +213,8 @@ HTTP 201
     "rawOpenid4vp": "openid4vp://authorize?client_id=https%3A%2F%2Ff722-91-126-190-180.ngrok-free.app%2Fverifier%2Fv1&request_uri=https%3A%2F%2Ff722-91-126-190-180.ngrok-free.app%2Fverifier%2Fv1%2Frequest.jwt%2Fb9f445d2-a16b-46b1-99ca-3db268ebf255"
 }
 ```
+With the provided Postman collection, you can click on "Visualize" and scan the QR code directly with your wallet
+![qr code visualization](./docs/qr-code-visualization.png)
 
 ### Get Request Object
 This request is done by the wallet.
