@@ -1,0 +1,9 @@
+authtoken:
+version: 2
+tunnels:
+  auth-server:
+    addr: 3001
+    proto: http
+  issuer:
+    addr: 3000
+    proto: http

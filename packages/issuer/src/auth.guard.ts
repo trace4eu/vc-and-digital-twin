@@ -1,20 +1,35 @@
-import { Injectable, CanActivate, ExecutionContext, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  HttpException,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { ConfigService } from '@nestjs/config';
+import { ApiConfig } from '../config/configuration';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  private readonly authServerURL: string;
 
-  authServerURL = 'http://localhost:3001'
+  constructor(
+    private reflector: Reflector,
+    private configService: ConfigService<ApiConfig, true>,
+  ) {
+    this.authServerURL = this.configService.get<string>('authServerUrl');
+  }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const response = context.switchToHttp().getResponse();
-    
+    context.switchToHttp().getResponse();
     const authHeader = request.headers['authorization'];
 
     if (!authHeader) {
-      throw new HttpException('Authorization header is missing', HttpStatus.UNAUTHORIZED);
+      throw new HttpException(
+        'Authorization header is missing',
+        HttpStatus.UNAUTHORIZED,
+      );
     }
 
     const token = authHeader.split(' ')[1];
@@ -23,14 +38,16 @@ export class AuthGuard implements CanActivate {
     }
 
     try {
-
-      const verificationResponse = await fetch(`${this.authServerURL}/verifyAccessToken`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const verificationResponse = await fetch(
+        `${this.authServerURL}/verifyAccessToken`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ token: token }),
         },
-        body: JSON.stringify({ token: token }),
-      });
+      );
 
       if (!verificationResponse.ok) {
         throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
