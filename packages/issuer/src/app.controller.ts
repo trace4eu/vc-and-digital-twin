@@ -1,163 +1,196 @@
-import * as SignatureWrapperTypes from '@trace4eu/signature-wrapper';
-import { WalletFactory } from '@trace4eu/signature-wrapper';
 import * as qrcode from 'qrcode';
-import { Controller, Get, Post, Param, Body, Headers, UseGuards} from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiTags, ApiBearerAuth, ApiResponse} from '@nestjs/swagger';
+import { decode, JwtPayload } from 'jsonwebtoken';
+import {
+  Body,
+  Controller,
+  Get,
+  Headers,
+  HttpException,
+  HttpStatus,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AppService } from './app.service';
 
 // middleware for authentication before
 import { AuthGuard } from './auth.guard'; // Auth guard for token authentication
+import { randomBytes, randomUUID } from 'crypto';
 
-import { randomUUID, randomBytes } from "crypto";
-import fs from "fs";
-
-import { CredentialData, CredentialOfferResponse, CredentialIssuanceResponse, CredentialOfferInformationResponse } from './swagger-api-schemas/issuer-schemas';
-import { UniversityDegreeCredentialConfig, LoginCredentialConfig } from './credential-configurations';
-
-
+import {
+  CredentialIssuanceResponse,
+  CredentialIssuerMetadataResponse,
+  CredentialOffer,
+  CredentialOfferInformationResponse,
+  CredentialOfferRequest,
+  CredentialOfferResponse,
+  CredentialRequest,
+} from './swagger-api-schemas/issuer-schemas';
+import {
+  credentialSchemas,
+  credentialSupported,
+} from './credential-configurations';
+import {
+  joseWrapper,
+  JWK,
+} from '@trace4eu/signature-wrapper/dist/wrappers/joseWrapper';
+import { ConfigService } from '@nestjs/config';
+import { ApiConfig } from '../config/configuration';
+import { getPrivateKeyJwkES256 } from '@trace4eu/signature-wrapper/dist/utils/keys';
 
 const buildB64QrCode = async function (content: string): Promise<string> {
   return qrcode.toDataURL(content);
 };
-var jwt = require('jsonwebtoken');
-
-//did of issuer (also listed in EBSI TIR: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zobuuYAHkAbRFCcqdcJfTgR)
-const did = 'did:ebsi:zobuuYAHkAbRFCcqdcJfTgR'; //TODO: load in as global variable
-const entityKey = [
-  {
-    alg: SignatureWrapperTypes.Algorithm.ES256K,
-    privateKeyHex:
-      'c4877a6d51c382b25a57684b5ac0a70398ab77b0eda0fcece0ca14ed00737e57',
-  },
-  {
-    alg: SignatureWrapperTypes.Algorithm.ES256,
-    privateKeyHex:
-      'fa50bbba9feade27ea61dd9973abfd7c04e72366b607558cd0b423b75d067a86',
-  },
-];
-
-const wallet = WalletFactory.createInstance(false, did, entityKey);
-
-// implements https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-3.5
-@ApiTags("OID4VCI (pre-authorized flow)")
+const ALGORITHM = 'ES256';
+@ApiTags('OID4VCI (pre-authorized flow)')
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  private offerMap: Map<string, CredentialOffer> = new Map();
+  private preAuthCodeMap: Map<string, string> = new Map();
+  private readonly serverURL: string;
+  private readonly authServerURL: string;
+  private readonly privateKey: JWK;
+  private readonly publicKey: JWK;
+  private readonly issuerDid: string;
+  private readonly issuerName: string;
 
-  // class variables that need to be set by issuer
-  serverURL = "http://localhost:3000"
-  authServerURL = "http://localhost:3001"
-
-  // other class variables
-  offerMap = new Map(); // TODO: change to redis done by pablo
-
-  //helper functions
-  generateNonce(length=12): string{
-    return(randomBytes(length).toString("hex"))
+  constructor(
+    private configService: ConfigService<ApiConfig, true>,
+    private readonly appService: AppService,
+  ) {
+    this.serverURL = this.configService.get<string>('serverUrl');
+    this.authServerURL = this.configService.get<string>('authServerUrl');
+    this.privateKey = getPrivateKeyJwkES256(
+      this.configService.get<string>('privateKey'),
+    );
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { d, ...publicJwk } = this.privateKey;
+    this.publicKey = publicJwk;
+    this.issuerDid = this.configService.get<string>('issuerDid');
+    this.issuerName = this.configService.get<string>('issuerName');
+  }
+  generateNonce(length = 12): string {
+    return randomBytes(length).toString('hex');
   }
 
-  // creater credential offer
-  // called by holder
-  @Post("offer")
-  @ApiOperation({description: "Insert in body credetnial data, e.g. : {credentialSubject: {...}, type: ...}"})
-  @ApiResponse({ status: 201, description: 'Credential offer creation successfull', type: CredentialOfferResponse})
-  async postCredentialOffer(@Body() credentialData : CredentialData){
+  @Post('offer')
+  @ApiBody({ type: CredentialOfferRequest })
+  @ApiResponse({
+    status: 201,
+    description: 'Credential offer creation successfull',
+    type: CredentialOfferResponse,
+  })
+  async postCredentialOffer(@Body() credentialData: CredentialOfferRequest) {
+    const credential = credentialSupported.find((credentialSupported) =>
+      credentialSupported.types.includes(credentialData.type),
+    );
+    if (!credential)
+      throw new HttpException(
+        'Credential not supported',
+        HttpStatus.BAD_REQUEST,
+      );
+    const { credentialOfferId, preAuthCode } =
+      this.appService.createCredentialOffer();
 
-    // create credential offer
-    const {uuid, pre_authorized_code} = this.appService.createCredentialOffer();
+    this.offerMap.set(credentialOfferId, {
+      pre_auth_code: preAuthCode,
+      types: credential.types,
+      ...credentialData,
+    });
+    this.preAuthCodeMap.set(preAuthCode, credentialOfferId);
 
-    // store credential offer in map
-    this.offerMap.set(uuid, {pre_authorized_code, credentialData});
-
-    // format credential offer
-    const rawCredentialOffer = `openid-credential-offer://?credential_offer_uri=${this.serverURL}/credential-offer/${uuid}`;
+    const rawCredentialOffer = `openid-credential-offer://?credential_offer_uri=${this.serverURL}/credential-offer/${credentialOfferId}`;
     const qrBase64 = await buildB64QrCode(rawCredentialOffer);
-    
-    //return credential offer
-    const response : CredentialOfferResponse = {
+
+    const response: CredentialOfferResponse = {
       rawCredentialOffer: rawCredentialOffer,
-      qrBase64: qrBase64
-    }
+      qrBase64: qrBase64,
+    };
     return response;
   }
 
-  // get credential offer
-  // called by issuer
-  @Get("credential-offer/:id")
-  @ApiResponse({ status: 201, description: 'Credential offer information retrieval successfull', type: CredentialOfferInformationResponse})
-  getCredentialOffer(@Param("id") id : string): any {
+  @Get('credential-offer/:id')
+  @ApiResponse({
+    status: 201,
+    description: 'Credential offer information retrieval successfully',
+    type: CredentialOfferInformationResponse,
+  })
+  getCredentialOffer(@Param('id') id: string): any {
+    const credentialOffer = this.offerMap.get(id) as CredentialOffer;
+    const credential = credentialSupported.find((credentialSupported) =>
+      credentialSupported.types.includes(
+        credentialOffer.types[credentialOffer.types.length - 1],
+      ),
+    );
+    if (!credentialOffer)
+      throw new HttpException(
+        'Credential offer not found',
+        HttpStatus.NOT_FOUND,
+      );
 
-    // get credential offer from map
-    const entry = this.offerMap.get(id);
-    let pre_auth_code;
-    let credentialData;
-
-    // check if offer exists and create new offer entry based on chosen flow: authorization or pre-authorization
-    if (entry) {
-      ({
-        pre_authorized_code: pre_auth_code,
-        credentialData,
-      } = entry);
-
-      if (pre_auth_code) { // for pre-authorized code flow
-        this.offerMap.set(pre_auth_code, credentialData);
-      }
-    }
-
-    // return credential offer information
-    const response : CredentialOfferInformationResponse = {
+    return {
       credential_issuer: `${this.serverURL}`,
-      credentials: credentialData
-        ? credentialData.type
-        : ["UniversityDegreeCredential"], //TODO: this needs to be adapted by use case
+      credentials: [
+        {
+          format: credential?.format,
+          types: credential?.types,
+        },
+      ],
       grants: {
-        "urn:ietf:params:oauth:grant-type:pre-authorized_code": {
-          "pre-authorized_code": pre_auth_code ?? randomUUID(),
-          user_pin_required: true, 
+        'urn:ietf:params:oauth:grant-type:pre-authorized_code': {
+          'pre-authorized_code': credentialOffer.pre_auth_code ?? randomUUID(),
+          user_pin_required: !!credentialOffer.user_pin,
         },
       },
     };
-
-    return(response);
   }
 
-  // post credential
-  // called by holder
   @Post('credential')
   @UseGuards(AuthGuard)
-  @ApiBearerAuth() //auth token contains the credenital_identifier = uiid to find vc offer in mapping
+  @ApiBearerAuth()
   @ApiBody({
-    description: 'Generate a signed credential. Use `https://jwt.io/` to create proof object with jwt containing did of holder (= jwt.payload.iss).',
-    schema: {
-      properties: {
-        proof: {
-          type: 'object',
-          properties: {
-            jwt: { type: 'string' }, //jwt contains did of subject that will hold to be issued VC (found by jwt.payload.iss)
-          },
-        },
-      },
-    },
+    type: CredentialRequest,
   })
-  @ApiResponse({ status: 201, description: 'Credential issuance successfull', type: CredentialIssuanceResponse})
+  @ApiResponse({
+    status: 201,
+    description: 'Credential issuance successfull',
+    type: CredentialIssuanceResponse,
+  })
   async credential(
     @Headers('authorization') authHeader: string,
-    @Body() requestBody: any, //TODO: define requestBody type
+    @Body() requestBody: CredentialRequest,
   ) {
     const token = authHeader.split(' ')[1];
+    const preAuthCode = (decode(token) as JwtPayload).jti;
+    if (!preAuthCode)
+      throw new HttpException(
+        'No credential identifier found',
+        HttpStatus.BAD_REQUEST,
+      );
+    const credentialOfferId = this.preAuthCodeMap.get(preAuthCode);
+    if (!credentialOfferId)
+      throw new HttpException(
+        'No credential identifier found',
+        HttpStatus.BAD_REQUEST,
+      );
+    const credentialOfferData = this.offerMap.get(credentialOfferId);
+    if (!credentialOfferData)
+      throw new HttpException(
+        'No credential data found',
+        HttpStatus.BAD_REQUEST,
+      );
+    const decodedHeaderSubjectDID = requestBody.proof.jwt
+      ? (decode(requestBody.proof.jwt) as JwtPayload).iss
+      : null; //TODO: check if jwt is valid and has iss field
 
-    const result = await wallet.verifyJwt(token, 'ES256');
-    const load = result.payload as Record<string, any>; //TODO: discuss with pablo to make JWTVerifyResult type more usable:https://github.com/trace4eu/ebsi-services-wrapper/blob/main/signature-wrapper/src/types/types.ts
-    const credential_identifier = load.credential_identifier 
-    const decodedHeaderSubjectDID = requestBody.proof.jwt ? jwt.decode(requestBody.proof.jwt).iss : null; //TODO: check if jwt is valid and has iss field
-
-    const credentialData = this.offerMap.get(credential_identifier); //TODO: should be found by issuer_state or pre_authorization_code depending on authorization or pre-authorization code flow???
-
-    let credentialSubject = credentialData
+    const credentialSubject = credentialOfferData.credentialSubject
       ? {
           id: decodedHeaderSubjectDID,
-          ...credentialData.credentialSubject,
-          issuance_date: new Date(Math.floor(Date.now() / 1000) * 1000).toISOString(),
+          ...credentialOfferData.credentialSubject,
+          issuance_date: new Date(
+            Math.floor(Date.now() / 1000) * 1000,
+          ).toISOString(),
         }
       : {
           id: decodedHeaderSubjectDID,
@@ -167,73 +200,87 @@ export class AppController {
           degree: 'Bachelor of Computer Science',
           gpa: '1.2',
           age_over_18: true,
-          issuance_date: new Date(Math.floor(Date.now() / 1000) * 1000).toISOString(),
+          issuance_date: new Date(
+            Math.floor(Date.now() / 1000) * 1000,
+          ).toISOString(),
         };
 
+    const { schema } =
+      credentialSchemas.find((credentialSchema) => {
+        if (credentialOfferData?.type) {
+          return credentialOfferData.type === credentialSchema.type;
+        }
+      }) ?? credentialSchemas[credentialSchemas.length - 1];
+
+    const credentialId = randomUUID();
+    const issuedAt = Math.floor(Date.now() / 1000);
+    const expirationDate = issuedAt + 60 * 60;
     const payload = {
-      iss: this.serverURL,
+      jti: `urn:uuid:${credentialId}`,
+      iss: this.issuerDid,
       sub: decodedHeaderSubjectDID || '',
-      iat: Math.floor(Date.now() / 1000),
+      iat: issuedAt,
+      nbf: issuedAt,
+      exp: expirationDate,
       vc: {
-        credentialSubject: credentialSubject,
-        expirationDate: new Date((Math.floor(Date.now() / 1000) + 60 * 60) * 1000).toISOString(),
-        id: decodedHeaderSubjectDID,
-        issuanceDate: new Date(Math.floor(Date.now() / 1000) * 1000).toISOString(),
-        issued: new Date(Math.floor(Date.now() / 1000) * 1000).toISOString(),
-        issuer: did,
-        type: credentialData.type,
-        '@context': [
-          'https://www.w3.org/2018/credentials/v1',
-          'https://europa.eu/2018/credentials/eudi/pid/v1',
-        ],
-        validFrom: new Date(Math.floor(Date.now() / 1000) * 1000).toISOString(),
+        credentialSubject,
+        expirationDate: new Date(expirationDate * 1000).toISOString(),
+        id: `urn:uuid:${credentialId}`,
+        issuanceDate: new Date(
+          Math.floor(Date.now() / 1000) * 1000,
+        ).toISOString(),
+        issued: new Date(issuedAt * 1000).toISOString(),
+        issuer: this.issuerDid,
+        type: credentialOfferData?.types,
+        '@context': ['https://www.w3.org/2018/credentials/v1'],
+        validFrom: new Date(issuedAt * 1000).toISOString(),
+        credentialSchema: {
+          id: schema,
+          type: 'FullJsonSchemaValidator2021',
+        },
       },
     };
 
-    const credentialJwt = await wallet.signJwt( //TODO check if necessarey to change this code so that one uses the signature wrapper function: https://github.com/trace4eu/ebsi-services-wrapper/blob/main/signature-wrapper/README.md#signvc
+    const kid = await joseWrapper.calculateJwkThumbprint(this.publicKey);
+    const credentialJwt = await joseWrapper.signJwt(
+      this.privateKey,
       Buffer.from(JSON.stringify(payload)),
-      { alg: SignatureWrapperTypes.Algorithm.ES256 },
       {
         typ: 'JWT',
         alg: 'ES256',
-        kid: `${did}#key-1`,
+        kid: `${this.issuerDid}#${kid}`,
       },
     );
 
-    const response : CredentialIssuanceResponse = {
-      format: 'jwt_vc',
+    const response: CredentialIssuanceResponse = {
+      format: 'jwt_vc_json',
       credential: credentialJwt,
       c_nonce: this.generateNonce(),
       c_nonce_expires_in: 86400,
-    }
+    };
     return response;
   }
 
-  @Get(".well-known/openid-credential-issuer")
-  getCredentialIssuerMetadata(){
-    const metadata = {
-      credential_issuer: `${this.serverURL}`,
+  @ApiResponse({
+    status: 200,
+    type: CredentialIssuerMetadataResponse,
+  })
+  @Get('.well-known/openid-credential-issuer')
+  getCredentialIssuerMetadata(): CredentialIssuerMetadataResponse {
+    return {
       authorization_server: `${this.authServerURL}`,
+      credential_issuer: `${this.serverURL}`,
       credential_endpoint: `${this.serverURL}/credential`,
-      credential_response_encryption: {
-        alg_values_supported: ["ECDH-ES"],
-        enc_values_supported: ["A128GCM"],
-        encryption_required: false,
-      },
       display: [
         {
-          name: "Issuer Name", //TODO set by issuer depends on use case
-          locale: "en-US",
+          name: this.issuerName,
+          locale: 'en-US',
           logo: {
-            url: "https://logowik.com/content/uploads/images/technischen-universitat-berlin1469.jpg"
+            url: 'https://logowik.com/content/uploads/images/technischen-universitat-berlin1469.jpg',
           },
         },
       ],
-      credential_configurations_supported: {
-        UniversityDegreeCredentialConfig, //TODO set by issuer depends on use case
-        LoginCredentialConfig //TODO set by issuer depends on use case
-      },
+      credentials_supported: credentialSupported,
     };
-    return(metadata);
   }
 }

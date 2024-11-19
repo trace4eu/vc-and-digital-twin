@@ -8,6 +8,8 @@ export interface ApiConfig {
   privateKey: string | undefined;
   serverUrl: string | undefined;
   authServerUrl: string | undefined;
+  issuerDid: string | undefined;
+  issuerName: string | undefined;
 }
 
 export const loadConfig = (): ApiConfig => {
@@ -17,6 +19,8 @@ export const loadConfig = (): ApiConfig => {
     privateKey: process.env.PRIVATE_KEY,
     serverUrl: process.env.SERVER_URL,
     authServerUrl: process.env.AUTH_SERVER_URL,
+    issuerDid: process.env.ISSUER_DID,
+    issuerName: process.env.ISSUER_NAME,
   };
 };
 
@@ -30,9 +34,13 @@ export const ApiConfigModule = ConfigModule.forRoot({
   load: [loadConfig],
   validationSchema: Joi.object({
     API_PORT: Joi.string().default('3000'),
-    API_BASE_PATH: Joi.string(),
-    PRIVATE_KEY: Joi.string().length(64),
-    SERVER_URL: Joi.string(),
-    AUTH_SERVER_URL: Joi.string(),
+    API_BASE_PATH: Joi.string().required(),
+    PRIVATE_KEY: Joi.string().length(64).required(),
+    SERVER_URL: Joi.string().required(),
+    AUTH_SERVER_URL: Joi.string().required(),
+    ISSUER_DID: Joi.string()
+      .pattern(/^did:ebsi/)
+      .required(),
+    ISSUER_NAME: Joi.string().required(),
   }),
 });

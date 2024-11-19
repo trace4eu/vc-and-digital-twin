@@ -27,7 +27,7 @@
     "@nestjs/swagger": "^7.4.2",
     "@trace4eu/signature-wrapper": "^0.0.20",
     "joi": "^17.13.3",
-    "jsonwebtoken": "^9.0.2",
+    "jose": "^5.9.6",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1"
   },
