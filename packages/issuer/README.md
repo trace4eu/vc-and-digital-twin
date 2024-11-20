@@ -40,3 +40,8 @@
 
 https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0-10.html#section-3.5
 ![Issuance using Pre-Authorized Code Flow](./docs/pre-auth-flow.png)
+
+```sh
+docker build -t issuer .
+docker run --env-file .env -d -p 3000:3000 --name issuer issuer
+```
