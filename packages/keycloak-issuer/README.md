@@ -28,7 +28,7 @@ is required, which must be installed using a Python Package manager (https://doc
 mitmproxy -s ./ebsi.py --mode reverse:http://localhost:8080@7000
 ```
 
-## Executions
+## Execution
 Step 1: Keycloak execution. Run the following command. Make sure you are using a safe password
 
 ```bash
