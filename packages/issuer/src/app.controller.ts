@@ -1,5 +1,7 @@
 import * as qrcode from 'qrcode';
 import { decode, JwtPayload } from 'jsonwebtoken';
+import * as bcrypt from "bcrypt";
+
 import {
   Body,
   Controller,
@@ -99,6 +101,22 @@ export class AppController {
       ...credentialData,
     });
     this.preAuthCodeMap.set(preAuthCode, credentialOfferId);
+
+    //if user_pin is given by issuer, send hash of user_pin to authentication server by creating offer specific authentication session
+    const user_pin = credentialData.user_pin?.toString()
+    if(user_pin){
+      const user_pin_hash = bcrypt.hashSync(user_pin, 10);
+      const createAuthSessionResponse = await fetch(
+        `${this.authServerURL}/createAuthSession`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ preAuthCode: preAuthCode, user_pin_hash: user_pin_hash }),
+        },
+      );
+    }
 
     const rawCredentialOffer = `openid-credential-offer://?credential_offer_uri=${this.serverURL}/credential-offer/${credentialOfferId}`;
     const qrBase64 = await buildB64QrCode(rawCredentialOffer);
@@ -271,12 +289,12 @@ export class AppController {
       authorization_server: `${this.authServerURL}`,
       credential_issuer: `${this.serverURL}`,
       credential_endpoint: `${this.serverURL}/credential`,
-      display: [
+      display: [ //TODO: change depending on your use case
         {
           name: this.issuerName,
           locale: 'en-US',
           logo: {
-            url: 'https://logowik.com/content/uploads/images/technischen-universitat-berlin1469.jpg',
+            url: 'https://logowik.com/content/uploads/images/technischen-universitat-berlin1469.jpg', 
           },
         },
       ],
