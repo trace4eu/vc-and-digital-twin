@@ -16,6 +16,8 @@ import {
 } from '@trace4eu/signature-wrapper/dist/wrappers/joseWrapper';
 import { getPrivateKeyJwkES256 } from '@trace4eu/signature-wrapper/dist/utils/keys';
 import { ConfigService } from '@nestjs/config';
+import * as bcrypt from "bcrypt";
+
 
 const ALGORITHM = 'ES256';
 
@@ -24,6 +26,7 @@ const ALGORITHM = 'ES256';
 export class AppController {
   private readonly serverURL: string;
   private readonly authServerURL: string;
+  private authSessions = new Map<string, {user_pin_hash: string, sessionStart: Date}>(); //maps client ID to client's authentication session
   private accessTokens = new Map<string, string>();
   private readonly privateKey: JWK;
   private readonly publicKey: JWK;
@@ -81,6 +84,29 @@ export class AppController {
     }
   }
 
+  @Post('createAuthSession')
+  @ApiBody({
+    schema: { properties: { preAuthCode: {type: "string"}, user_pin_hash: { type: 'string' } } },
+  })
+  @HttpCode(HttpStatus.OK)
+  async createAuthSession(
+    @Body() body: { preAuthCode: string, user_pin_hash: string },
+  ): Promise<{ message: string }> {
+    const user_pin = body.user_pin_hash;
+
+    if (!user_pin) {
+      throw new HttpException('Hash of user pin is required', HttpStatus.BAD_REQUEST);
+    }
+
+    try {
+      this.authSessions.set(body.preAuthCode, { user_pin_hash: user_pin, sessionStart: new Date() });
+
+      return { message: 'Credential offer specific authentication session started'};
+    } catch (err) {
+      throw new HttpException('Authentication session failed', HttpStatus.UNAUTHORIZED);
+    }
+  }
+
   @Post('verifyAccessToken')
   @ApiBody({
     schema: { properties: { token: { type: 'string' } } },
@@ -123,8 +149,9 @@ export class AppController {
     description: 'Generate an access token',
     schema: {
       properties: {
-        client_id: { type: 'string' },
-        pre_authorized_code: { type: 'string' },
+        client_id: { type: 'string' }, //TODO: find out what is send here in production from the wallets
+        grant_tpye: { type: 'string' },
+        "pre-authorized_code": { type: 'string' },
         user_pin: { type: 'string' },
       },
     },
@@ -146,11 +173,27 @@ export class AppController {
         throw new HttpException('Invalid grant', HttpStatus.BAD_REQUEST);
       }
 
-      if (user_pin !== undefined && user_pin !== '1234') {
-        //TODO by use case: implement own needed routine
+      // get authentication session of client
+      console.log(body);
+      console.log(this.authSessions);
+      const clientAuthSession = this.authSessions.get(preAuthCode);
+      if(clientAuthSession === undefined){
+        throw new HttpException('No authentication session found for client', HttpStatus.BAD_REQUEST);
+      }
+
+      //TODO: depending on use case adapt the authentication session duration constraint
+      /*
+      if (clientAuthSession.sessionStart.getTime() + 600000 < new Date().getTime()) { //session duration of 10 minutes
+        throw new HttpException('Authentication session has expired', HttpStatus.BAD_REQUEST);
+      }
+      */
+
+      // check if user entered the correct user_pin for the authentication session
+      if (user_pin !== undefined && bcrypt.compareSync(user_pin, clientAuthSession.user_pin_hash)) { //compareSync returns false if the string user_pin is not equal to its hash version, i.e. the user entered the wrong user_pin
         throw new HttpException('Invalid pin', HttpStatus.BAD_REQUEST);
       }
 
+      // if user_pin is correct, generate access token and delete authentication session
       const generatedAccessToken = await this.generateAccessToken(
         this.authServerURL,
         preAuthCode,
@@ -164,6 +207,7 @@ export class AppController {
         );
       } else {
         this.accessTokens.set(preAuthCode, generatedAccessToken);
+        this.authSessions.delete(preAuthCode); //close authentication session
         return {
           access_token: generatedAccessToken,
           token_type: 'bearer',
