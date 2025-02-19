@@ -1,5 +1,4 @@
-name: Run Tests
-run-name: Run by ${{ github.actor }}
+name: Test the Verifier
 
 on:
   workflow_dispatch:
@@ -16,7 +15,7 @@ on:
 
 jobs:
   test-verifier:
-    name: Test the Verifier Component
+    name: Test the Verifier
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo

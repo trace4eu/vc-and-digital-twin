@@ -1,0 +1,27 @@
+name: Test the Authorization Server
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-authorization-server:
+    name: Test the Authorization Server
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        working-directory: packages/authorization-server
+        run: |
+          npm install
+
+      - name: Run Authorization Server Tests
+        working-directory: packages/authorization-server
+        run: |
+          npm run test:e2e
