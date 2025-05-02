@@ -1,0 +1,37 @@
+name: Test the Verifiable Presentation
+
+on:
+  workflow_dispatch:
+    inputs:
+      test-type:
+        type: choice
+        description: Test type
+        required: true
+        default: e2e
+        options:
+          - e2e
+          - integration
+          - unit
+
+jobs:
+  test-verifier:
+    name: Test the Verifiable Presentation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        working-directory: packages/verifiable-presentation
+        run: |
+          npm install
+
+      - name: Run Verifier Tests
+        working-directory: packages/verifiable-presentation
+        run: |
+          npm run test:${{ github.event.inputs.test-type || 'e2e'}}
