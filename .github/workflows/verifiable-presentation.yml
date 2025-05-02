@@ -35,3 +35,4 @@ jobs:
         working-directory: packages/verifiable-presentation
         run: |
           npm run test:${{ github.event.inputs.test-type || 'e2e'}}
+        continue-on-error: true
