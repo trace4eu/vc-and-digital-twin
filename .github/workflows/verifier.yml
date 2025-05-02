@@ -38,4 +38,4 @@ jobs:
       - name: Run Verifier Tests
         working-directory: packages/verifier
         run: |
-          npm run test:${{ github.event.inputs.test-type }}
+          npm run test:${{ github.event.inputs.test-type || 'e2e' }}
