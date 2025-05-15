@@ -1,6 +1,6 @@
 module.exports = {
   preset: 'ts-jest',
-  testEnvironment: 'node',
+  testEnvironment: 'allure-jest/node',
   rootDir: '.',
   roots: ['<rootDir>/src/', '<rootDir>/tests/'],
   testMatch: ['**/?(*.)+(spec|test|tests).+(ts|tsx|js)'],
