@@ -24,13 +24,13 @@ jobs:
         ports:
           - 6379:6379
         options: >-
-          --health-cmd "redis-server --test-memory 1 >/dev/null 2>&1 || exit 1"
-          --health-interval 10s
-          --health-timeout 10s
-          --health-retries 10
+          --health-cmd "redis-server --test-memory 1"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
 
     steps:
-      - name: Check out the repo
+      - name: Check Out Repo
         uses: actions/checkout@v4
 
       - name: Set up Node 20
@@ -38,35 +38,34 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install Redis CLI
-        run: sudo apt-get update && sudo apt-get install -y iputils-ping dnsutils redis-tools
+      - name: Install Debugging Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iputils-ping dnsutils netcat curl
 
       - name: Wait for Redis to be ready
         run: |
-          for i in {1..15}; do
-            if redis-cli -h redis ping | grep -q PONG; then
-              echo "Redis is ready"
+          for i in {1..20}; do
+            if echo -en "PING\r\n" | nc redis 6379 | grep -q PONG; then
+              echo "Redis is ready."
               exit 0
             fi
-            echo "Waiting for Redis..."
+            echo "Waiting for Redis to become ready..."
             sleep 10
           done
-          echo "Redis not ready after retries"
+          echo "Redis is not ready after retries."
           exit 1
 
-      - name: Set up env variables
+      - name: Set up Environment Variables
         run: |
           echo "${{ secrets.SECRETS_BASE64 }}" | base64 --decode > packages/verifier/.env
           echo "REDIS_HOST=redis" >> packages/verifier/.env
           echo "REDIS_PORT=6379" >> packages/verifier/.env
 
-      - name: Install dependencies
+      - name: Install Dependencies
         working-directory: packages/verifier
-        run: |
-          npm install
+        run: npm install
 
       - name: Run Verifier Tests
         working-directory: packages/verifier
-        run: |
-          npm run test:${{ github.event.inputs.test-type || 'e2e' }}
-        continue-on-error: true
+        run: npm run test:${{ github.event.inputs.test-type || 'e2e' }}
