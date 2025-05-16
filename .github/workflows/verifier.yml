@@ -43,6 +43,24 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y iputils-ping dnsutils redis-tools curl
 
+      - name: Debug Redis Connectivity
+        run: |
+          echo "Checking Redis connection via 'redis-cli':"
+          redis-cli -h redis -p 6379 PING || echo "Redis connection failed"
+          echo "Checking Redis logs for errors:"
+          docker ps | grep redis
+          docker logs $(docker ps | grep redis | awk '{print $1}')
+
+      - name: Network Debugging
+        run: |
+          echo "Checking networking:"
+          hostname
+          cat /etc/hosts
+          echo "Docker Container List:"
+          docker ps
+          echo "Redis logs:"
+          docker logs $(docker ps | grep redis | awk '{print $1}')
+
       - name: Wait for Redis to be ready
         run: |
           for i in {1..20}; do
