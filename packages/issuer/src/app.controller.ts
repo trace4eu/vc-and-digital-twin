@@ -204,9 +204,6 @@ export class AppController {
       ? {
           id: decodedHeaderSubjectDID,
           ...credentialOfferData.credentialSubject,
-          issuance_date: new Date(
-            Math.floor(Date.now() / 1000) * 1000,
-          ).toISOString(),
         }
       : {
           id: decodedHeaderSubjectDID,
@@ -230,7 +227,7 @@ export class AppController {
 
     const credentialId = randomUUID();
     const issuedAt = Math.floor(Date.now() / 1000);
-    const expirationDate = issuedAt + 60 * 60;
+    const expirationDate = issuedAt + 60 * 60 * 24 * 365; // 1 year
     const payload = {
       jti: `urn:uuid:${credentialId}`,
       iss: this.issuerDid,
